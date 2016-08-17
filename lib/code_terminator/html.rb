@@ -119,8 +119,8 @@ class CodeTerminator::Html
      # Get the elements of the code in html format. Return a string with elements in html.
      #
      # Example:
-     #   >> CodeTerminator::Html.print_elements([#<Nokogiri::XML::Element:0x3fe31dc42bfc name="h1" children=[#<Nokogiri::XML::Text:0x3fe31dc42b70 "hola evelin">]>, #<Nokogiri::XML::Text:0x3fe31dc42b70 "hola evelin">])
-     #   => "name = h1<br><hr>name = text<br>content = hola evelin<br><hr>"
+     #   >> CodeTerminator::Html.print_elements([#<Nokogiri::XML::Element:0x3fe31dc42bfc name="h1" children=[#<Nokogiri::XML::Text:0x3fe31dc42b70 "hola mundo">]>, #<Nokogiri::XML::Text:0x3fe31dc42b70 "hola mundo">])
+     #   => "name = h1<br><hr>name = text<br>content = hola mundo<br><hr>"
      #
      # Arguments:
      #   elements: (Array)
