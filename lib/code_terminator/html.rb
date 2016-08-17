@@ -66,7 +66,7 @@ class CodeTerminator::Html
      errors = Array.new
 
      begin
-       xml = Nokogiri::XML(code) { |config| config.strict }
+       Nokogiri::XML(code) { |config| config.strict }
 
        #validate if html follow w3, uncomment when check all the page
          #"<!DOCTYPE html>
@@ -108,7 +108,7 @@ class CodeTerminator::Html
        end
        fileHtml.close
      rescue
-       text = "error"
+       text = false
      ensure
        #fileHtml.close unless fileHtml.nil?
      end
