@@ -26,7 +26,7 @@ Or install it yourself as:
 
 ## Quick Start
 
-To parse HTML and match the a file with code you just need to do:
+To parse HTML and match the file with html code you just need to do:
 ```ruby
     # code = code get from an editor
     # source = Source of the file you want to compare with
