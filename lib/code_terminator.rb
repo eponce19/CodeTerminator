@@ -1,5 +1,6 @@
 require "code_terminator/version"
 require "code_terminator/html"
+require "code_terminator/css"
 
 module CodeTerminator
 
