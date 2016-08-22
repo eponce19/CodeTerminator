@@ -1,4 +1,6 @@
 require 'Nokogiri'
+require 'Crass'
+require 'css_parser'
 require 'active_support/core_ext/string/filters'
 
 class CodeTerminator::Css
@@ -42,17 +44,41 @@ class CodeTerminator::Css
      #
      # Arguments:
      #   source: (String)
-     #  IMPORTANT get_elements work but the elements aren't in the correct format, fix.
+     #  IMPORTANT DELETE <STYLE> tag from the source
 
 
    def get_elements(source)
-     reader = Nokogiri::HTML(File.open(source))
-     reader = remove_empty_text(reader)
-     reader.at('style').children.each do |child|
-       @tags.push(child)
-       add_children(child) if child.children.any?
-     end
-     @tags
+    #  reader = Nokogiri::HTML(File.open(source))
+    #  reader = remove_empty_text(reader)
+    #  reader.at('style').children.each do |child|
+    #    @tags.push(child)
+    #    add_children(child) if child.children.any?
+    #  end
+      reader = read_file(source)
+      # reader = reader.tr('\<style>','')
+      # reader = reader.tr('\</style>','')
+      parser = Crass.parse(reader)
+      errors = parser.pop
+      p errors
+      elements = Array.new
+      selector = ""
+
+      parser.each do |node|
+        if !node[:selector].nil?
+          selector = node[:selector][:value]
+          elements << {:selector => selector}
+        end
+        if !node[:children].nil?
+          node[:children].each do |children|
+            if children.has_value?(:property)
+              elements << {:selector => selector, :property => children[:name], :value => children[:value]}
+            end
+          end
+        end
+      end
+
+      elements
+
    end
 
      # Validate if the syntax is correct. Return an array with Nokogiri errors.
@@ -159,63 +185,35 @@ class CodeTerminator::Css
    #   source: (String)
    #   code: (String)
 
-   def match(source, code)
-     html_errors = Array.new
-
-     code = Nokogiri::HTML(code)
-
+   def match(source,code)
+     #source = "exercises/test.css"
+     #code = " a.hover { color: yellow; } body { background-color: lightblue; color: blue; } "
      elements = get_elements(source)
-     #@elements = Html::PrintElements.call(elements)
+     css_errors = Array.new
+     parser = CssParser::Parser.new
 
-     elements.each do |element|
-       if element.name == "text"
-         #code if element is text
-       else
-         if code.css(element.name).length == 0
-           html_errors << element.name + " not exist"
-         else
-           element.attribute_nodes.each do |element_attribute|
-             if !code.css(element.name).attribute(element_attribute.name).nil?
-               if code.css(element.name).attribute(element_attribute.name).value != element_attribute.value
-                 html_errors << element_attribute.name + " not is the same value " + element_attribute.value
-               end
-             else
-               html_errors << element_attribute.name + " not exist"
-             end
+     parser.load_string!(code)
+     elements.each do |e|
+       item = e[:selector]
+       if !e[:property].nil?
+         property = e[:property] + ": " + e[:value]
+         parser_array = parser.find_by_selector(item)
+         if parser_array.any?
+           parser_property = parser_array[0].split(";")
+           parser_property.each {|a| a.strip! if a.respond_to? :strip! }
+           if !parser_property.include?(property)
+             css_errors << "not the same property " + property + " in selector " + item
            end
+         else
+          css_errors << "property "+ property + " not found in " + item
          end
        end
      end
-     html_errors
+     css_errors
    end
 
    private
 
-   def add_children(parent)
-     parent.children.each do |child|
-       @tags.push(child)
-       add_children(child) if child.children.any?
-     end
-   end
-
-   def remove_empty_text (reader)
-     reader.at("style").children.each do |child|
-       if child.text?
-         child.remove if child.content.to_s.squish.empty?
-       end
-        check_children(child) if child.children.any?
-     end
-     reader
-   end
-
-   def check_children(parent)
-     parent.children.each do |child|
-       if child.text?
-         child.remove if child.content.to_s.squish.empty?
-       end
-       check_children(child) if child.children.any?
-     end
-   end
 
   #end
 

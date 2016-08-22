@@ -10,6 +10,8 @@ gem 'rails', '4.2.6'
 # gem 'therubyracer', platforms: :ruby
 gem  'html5_validator'
 gem  'nokogiri'
+gem  'crass'
+gem  'css_parser'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.0'
