@@ -81,7 +81,7 @@ class CodeTerminatorTest < Minitest::Test
 
   def test_css_validate_syntax_blank_code
       ct = CodeTerminator::Css.new
-      assert_equal ct.validate_syntax("hola") , true
+      assert_equal ct.validate_syntax("") , false
   end
 
   def test_css_print_elements

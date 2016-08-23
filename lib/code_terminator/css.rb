@@ -89,6 +89,7 @@ class CodeTerminator::Css
      valid = true
      tree = Crass.parse(code)
      last = tree.length
+     if !tree[last-1].nil?
      nodes = tree[last-1][:children]
       if !nodes.nil?
         nodes.each do |children|
@@ -96,8 +97,12 @@ class CodeTerminator::Css
             valid = false
           end
         end
+      else
+        valid = false
       end
-
+    else
+      valid = false
+    end
     valid
   end
 
