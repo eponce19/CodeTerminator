@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Evelin Ponce"]
   spec.email         = ["eponce19@gmail.com"]
 
-  spec.summary       = "Validate syntaxis and instructions of html code"
-  spec.description   = "Helps to evaluate and parse html code."
+  spec.summary       = "Validate syntaxis and instructions of html and css code"
+  spec.description   = "Helps to evaluate and parse html and css code."
   spec.homepage      = 'http://rubygems.org/gems/code_terminator'
   spec.license       = "MIT"
 
@@ -22,4 +22,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.10"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "minitest"
+
 end
