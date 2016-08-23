@@ -71,7 +71,7 @@ class CodeTerminatorTest < Minitest::Test
 
   def test_css_validate_correct_syntax
       ct = CodeTerminator::Css.new
-      assert_equal ct.validate_syntax("body { background-color: lightblue; }") , true
+      assert_equal ct.validate_syntax("body{ background-color: lightblue; } ") , true
   end
 
   def test_css_validate_wrong_syntax

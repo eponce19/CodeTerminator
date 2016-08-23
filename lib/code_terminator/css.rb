@@ -97,8 +97,8 @@ class CodeTerminator::Css
             valid = false
           end
         end
-      else
-        valid = false
+      #else
+        #valid = false
       end
     else
       valid = false
