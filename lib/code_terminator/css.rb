@@ -11,10 +11,10 @@ class CodeTerminator::Css
     @tags = Array.new
   end
 
-    # Create a Html file with the code of the editor. Return a boolean that indicate if the file was created or not.
+    # Create a CSS file with the code of the editor. Return a boolean that indicate if the file was created or not.
     #
     # Example:
-    #   >> CodeTerminator::Html.new_file("hola_mundo.html", "<h1>Hola Mundo!</h1>")
+    #   >> CodeTerminator::Css.new_file("test.css", "<style> body { background-color: lightblue; }</style>")
     #   => true
     #
     # Arguments:
@@ -22,41 +22,35 @@ class CodeTerminator::Css
     #   code: (String)
 
    def new_file(source,code)
-     fileHtml = File.new(source, "w+")
+     fileCss = File.new(source, "w+")
      result = true
      begin
-       fileHtml.puts code
+       fileCss.puts code
      rescue
        result = false
      ensure
-       fileHtml.close unless fileHtml.nil?
+       fileCss.close unless fileCss.nil?
      end
      #return true if file was succesfully created
      result
    end
 
 
-     # Get html elements of a html file. Return a list of Nokogiri XML objects.
+     # Get html elements of a css file. Return a array of selectors with their properties and values.
      #
      # Example:
-     #   >> CodeTerminator::Html.get_elements("hola_mundo.html")
-     #   => [#<Nokogiri::XML::Element:0x3fe3391547d8 name="h1" children=[#<Nokogiri::XML::Text:0x3fe33915474c "Hola Mundo!">]>, #<Nokogiri::XML::Text:0x3fe33915474c "Hola Mundo!">]
+     #   >> CodeTerminator::Css.get_elements("test.css")
+     #   => [{:selector=>"body"}, {:selector=>"body", :property=>"background-color", :value=>"lightblue"}, {:selector=>"body", :property=>"color", :value=>"green"}]
      #
      # Arguments:
      #   source: (String)
-     #  IMPORTANT DELETE <STYLE> tag from the source
+     #
+     # Fixes:
+     #   IMPORTANT DELETE <STYLE> tag from the source
 
 
    def get_elements(source)
-    #  reader = Nokogiri::HTML(File.open(source))
-    #  reader = remove_empty_text(reader)
-    #  reader.at('style').children.each do |child|
-    #    @tags.push(child)
-    #    add_children(child) if child.children.any?
-    #  end
       reader = read_file(source)
-      # reader = reader.tr('\<style>','')
-      # reader = reader.tr('\</style>','')
       parser = Crass.parse(reader)
       errors = parser.pop
       p errors
@@ -76,67 +70,50 @@ class CodeTerminator::Css
           end
         end
       end
-
       elements
-
    end
 
-     # Validate if the syntax is correct. Return an array with Nokogiri errors.
+     # Validate if the syntax is correct. If is valid return boolean true.
      #
      # Example:
-     #   >> CodeTerminator::Html.validate_syntax("<h1>Hola Mundo!</h1")
-     #   => [#<Nokogiri::XML::SyntaxError: expected '>'>]
+     #   >> CodeTerminator::Html.validate_syntax("body { background-color: lightblue; }")
+     #   => true
      #
      # Arguments:
      #   code: (String)
-
-    #  IMPORTANT Only check the syntax inside the <></>, remember to check th syntax inside the style node
+     #
+     # Fixes:
+     #   IMPORTANT Method not validate <STYLE> tag from the code
 
    def validate_syntax(code)
-     errors = Array.new
-
-     begin
-       Nokogiri::XML(code) { |config| config.strict }
-
-       #validate if html follow w3, uncomment when check all the page
-         #"<!DOCTYPE html>
-         # <html>
-         #   <head>
-         #     <h1>asdasd</h1>
-         #     <title>asdasd</title>
-         #   </head>
-         #   <body>
-         #     <h1>hola</h1>
-         #   </body>
-         # </html>"
-       # @validator = Html5Validator::Validator.new
-       # @validator.validate_text(@html)
-
-     rescue Nokogiri::XML::SyntaxError => e
-       #errors[0] = "Check if you close your tags"
-       errors[0] = e
-     end
-
-     errors
+     valid = true
+     tree = Crass.parse(code)
+      last = tree.length
+       tree[last-1][:children].each do |children|
+        if children[:node].to_s == "error"
+         valid = false
+        end
+       end
+      valid
    end
 
-     # Read a html file. Return the text of the file.
+     # Read a css file. Return a string with the text of the file.
      #
      # Example:
-     #   >> CodeTerminator::Html.read_file("hola_mundo.html")
-     #   => "<h1>Hola Mundo!</h1>\n"
+     #   >> CodeTerminator::Css.read_file("test.css")
+     #   => "body { background-color: lightblue; }"
      #
      # Arguments:
      #   source: (String)
 
    def read_file(source)
-     fileHtml = File.open(source, "r")
+     fileCss = File.open(source, "r")
      text = ""
      begin
-       fileHtml.each_line do |line|
+       fileCss.each_line do |line|
          text << line
        end
-       fileHtml.close
+       fileCss.close
      rescue
        text = false
      ensure
@@ -146,24 +123,22 @@ class CodeTerminator::Css
      text
    end
 
-     # Get the elements of the code in html format. Return a string with elements in html.
+     # Get the elements of the code in css format. Return a string with elements in css.
      #
      # Example:
-     #   >> CodeTerminator::Html.print_elements([#<Nokogiri::XML::Element:0x3fe31dc42bfc name="h1" children=[#<Nokogiri::XML::Text:0x3fe31dc42b70 "hola mundo">]>, #<Nokogiri::XML::Text:0x3fe31dc42b70 "hola mundo">])
-     #   => "name = h1<br><hr>name = text<br>content = hola mundo<br><hr>"
+     #   >> CodeTerminator::Css.print_elements([{:selector=>"body"}, {:selector=>"body", :property=>"background-color", :value=>"lightblue"}] )
+     #   => "selector = body<br><hr>selector = body<br>property = background-color<br>value = lightblue<br><hr>"
      #
      # Arguments:
      #   elements: (Array)
-     #  IMPORTANT print the elements that are in #cdata-section inside <style>
+
 
    def print_elements(elements)
      text = ""
      elements.each do |child|
-       text << "name = " + child.name + "<br>"
-       text << "content = " + child.text + "<br>" if child.text?
-       child.attribute_nodes.each do |child_attribute|
-          text << child.name + " attribute = " + child_attribute.name + " - " + child_attribute.value + "<br>"
-       end
+       text << "selector = " + child[:selector] + "<br>"
+       text << "property = " + child[:property] + "<br>" if !child[:property].nil?
+       text << "value = " + child[:value] + "<br>" if !child[:value].nil?
        text << "<hr>"
      end
      text
@@ -171,19 +146,20 @@ class CodeTerminator::Css
 
 
    # Match if the code have the same elements than the exercise. Return an array with the mismatches.
-   #IMPORTANT this doesnt work because get_elements havent fixed yet.
 
    # Example:
    #
-   #   hola_mundo.html
-   # => <h1>Hola Mundo!</h1>
+   #   test.css
+   #   => body { background-color: lightblue; }
    #
-   #   >> CodeTerminator::Html.match("hola_mundo.html","<h2>Hola Mundo!</h2>")
-   #   => ["h1 not exist"]
+   #   >> CodeTerminator::Css.match("test.css","body {background-color: blue; }")
+   #   => ["not the same property background-color in selector body "]
    #
    # Arguments:
    #   source: (String)
    #   code: (String)
+   #
+   # Fix: Add <style> tag in the compare
 
    def match(source,code)
      #source = "exercises/test.css"
