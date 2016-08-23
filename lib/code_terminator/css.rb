@@ -88,14 +88,18 @@ class CodeTerminator::Css
    def validate_syntax(code)
      valid = true
      tree = Crass.parse(code)
-      last = tree.length
-       tree[last-1][:children].each do |children|
-        if children[:node].to_s == "error"
-         valid = false
+     last = tree.length
+     nodes = tree[last-1][:children]
+      if !nodes.nil?
+        nodes.each do |children|
+          if children[:node].to_s == "error"
+            valid = false
+          end
         end
-       end
-      valid
-   end
+      end
+
+    valid
+  end
 
      # Read a css file. Return a string with the text of the file.
      #

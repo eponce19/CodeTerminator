@@ -79,6 +79,11 @@ class CodeTerminatorTest < Minitest::Test
       assert_equal ct.validate_syntax("body { background-colo") , false
   end
 
+  def test_css_validate_syntax_blank_code
+      ct = CodeTerminator::Css.new
+      assert_equal ct.validate_syntax("hola") , true
+  end
+
   def test_css_print_elements
       ct = CodeTerminator::Css.new
       elements = ct.get_elements("exercises/test.css")
