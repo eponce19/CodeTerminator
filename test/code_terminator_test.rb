@@ -71,40 +71,38 @@ class CodeTerminatorTest < Minitest::Test
 
   def test_css_validate_correct_syntax
       ct = CodeTerminator::Css.new
-      assert_equal ct.validate_syntax("body{ background-color: lightblue; } ") , true
+      assert_equal ct.validate_syntax("body{ background-color: lightblue; }").empty? , true
+      #assert_equal ct.validate_syntax("body{ background-color: lightblue; } ") , true
   end
 
   def test_css_validate_wrong_syntax
       ct = CodeTerminator::Css.new
-      assert_equal ct.validate_syntax("body { background-colo") , false
+      assert_equal ct.validate_syntax("body { background-colo").any? , true
+      #assert_equal ct.validate_syntax("body { background-colo") , false
   end
 
   def test_css_validate_syntax_blank_code
       ct = CodeTerminator::Css.new
-      assert_equal ct.validate_syntax("") , false
+      assert_equal ct.validate_syntax("").any? , true
+      #assert_equal ct.validate_syntax("") , false
   end
 
   def test_css_print_elements
       ct = CodeTerminator::Css.new
       elements = ct.get_elements("exercises/test.css")
-      p ct.print_elements(elements)
       test_text = "selector = body<br><hr>selector = body<br>property = background-color<br>value = lightblue<br><hr>"
       assert_equal ct.print_elements(elements) == test_text , true
   end
 
   def test_css_match
       ct = CodeTerminator::Css.new
-      css_errors = ct.match("exercises/test.css","body {
-    background-color: lightblue; }")
-      p css_errors
+      css_errors = ct.match("exercises/test.css","body { background-color: lightblue; }")
       assert_equal css_errors.empty? , true
   end
 
   def test_css_mismatch
       ct = CodeTerminator::Css.new
-      css_errors = ct.match("exercises/test.css","body {
-    background-color: blue; }")
-      p css_errors
+      css_errors = ct.match("exercises/test.css","body { background-color: blue; }")
       assert_equal css_errors.empty? , false
   end
 

@@ -53,7 +53,6 @@ class CodeTerminator::Css
       reader = read_file(source)
       parser = Crass.parse(reader)
       errors = parser.pop
-      p errors
       elements = Array.new
       selector = ""
 
@@ -86,7 +85,7 @@ class CodeTerminator::Css
      #   IMPORTANT Method not validate <STYLE> tag from the code
 
    def validate_syntax(code)
-     valid = true
+     errors = Array.new
      tree = Crass.parse(code)
      last = tree.length
      if !tree[last-1].nil?
@@ -94,16 +93,16 @@ class CodeTerminator::Css
       if !nodes.nil?
         nodes.each do |children|
           if children[:node].to_s == "error"
-            valid = false
+            errors[0] = "error"
           end
         end
       #else
         #valid = false
       end
     else
-      valid = false
+      errors[0] = "error"
     end
-    valid
+    errors
   end
 
      # Read a css file. Return a string with the text of the file.
