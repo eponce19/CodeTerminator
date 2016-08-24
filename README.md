@@ -26,7 +26,7 @@ Or install it yourself as:
 
 ## Quick Start
 
-#HTML
+#####HTML
 To parse HTML and match the file with html code you just need to do:
 ```ruby
     # code = code get from an editor
@@ -53,7 +53,7 @@ You will know that the code and the source file have the same html elements when
     #   => ["h1 not exist"]
 ```
 
-# CSS
+##### CSS
 To parse CSS and match the file with css code you just need to do:
 ```ruby
     # code = code get from an editor
@@ -84,7 +84,7 @@ You will know that the code and the source file have the same css elements when 
 ###match(source, code)
 Match if the code have the same elements than the exercise. Return an array with the mismatches.
 
-#HTML
+####HTML
 ```ruby
    #   hola_mundo.html
    # => <h1>Come with me if you want to live!</h1>
@@ -96,7 +96,7 @@ Match if the code have the same elements than the exercise. Return an array with
    #
 ```
 
-#CSS
+#####CSS
 ```ruby
    #   test.css
    # => h1{ margin: 100px; }
@@ -110,13 +110,13 @@ Match if the code have the same elements than the exercise. Return an array with
 
 ###new_file(source, code)
 Create a Html/Css file with the code of the editor. Return a boolean that indicate if the file was created or not.
-#HTML
+#####HTML
 ```ruby
     >> ct = CodeTerminator::Html.new
     >> ct.new_file("hola_mundo.html", "<h1>Come with me if you want to live!</h1>")
     #   => true
 ```
-#CSS
+#####CSS
 ```ruby
     >> ct = CodeTerminator::Css.new
     >> ct.new_file("hola_mundo.css", "h1{ margin: 50px; }")
@@ -125,13 +125,13 @@ Create a Html/Css file with the code of the editor. Return a boolean that indica
 
 ###read_file(source)
 Read a html file. Return the text of the file.
-#HTML
+#####HTML
 ```ruby
     >> ct = CodeTerminator::Html.new
     >> ct.read_file("hola_mundo.html")
      #   => "<h1>Come with me if you want to live!</h1>"
 ```
-#CSS
+#####CSS
 ```ruby
     >> ct = CodeTerminator::Css.new
     >> ct.read_file("hola_mundo.css")
@@ -140,13 +140,13 @@ Read a html file. Return the text of the file.
 
 ###validate_syntax(code)
 Validate if the syntax is correct. Return an array with errors.
-#HTML
+#####HTML
 ```ruby
     >> ct = CodeTerminator::Html.new
     >> ct.validate_syntax("<h1>Come with me if you want to live!</h1")
      #   => [#<Nokogiri::XML::SyntaxError: expected '>'>]
 ```
-#CSS
+#####CSS
 ```ruby
     >> ct = CodeTerminator::Css.new
     >> ct.validate_syntax("h1{ margi")
@@ -155,13 +155,13 @@ Validate if the syntax is correct. Return an array with errors.
 
 ###get_elements(source)
 Get html elements of a html file. Return a list of Nokogiri XML objects.
-#HTML
+#####HTML
 ```ruby
     >> ct = CodeTerminator::Html.new
     >> ct.get_elements("hola_mundo.html")
      #   => [#<Nokogiri::XML::Element:0x3fe3391547d8 name="h1" children=[#<Nokogiri::XML::Text:0x3fe33915474c "Come with me if you want to live!">]>, #<Nokogiri::XML::Text:0x3fe33915474c "Come with me if you want to live!">]
 ```
-#CSS
+#####CSS
 ```ruby
     >> ct = CodeTerminator::Css.new
     >> ct.get_elements("hola_mundo.css")
@@ -172,13 +172,13 @@ Get html elements of a html file. Return a list of Nokogiri XML objects.
 Get the elements of the code in html format. Return a string with elements in html.
 <br>
 **Get 'Elements Array' calling 'get_elements()'
-#HTML
+#####HTML
 ```ruby
      CodeTerminator::Html.print_elements([#<Nokogiri::XML::Element:0x3fe31dc42bfc name="h1" children=[#<Nokogiri::XML::Text:0x3fe31dc42b70 "Come with me if you want to live!">]>, #<Nokogiri::XML::Text:0x3fe31dc42b70 "hola mundo">])
      #   => "name = h1<br><hr>name = text<br>content = Come with me if you want to live!<br><hr>"
      #
 ```
-#CSS
+#####CSS
 ```ruby
      CodeTerminator::Css.print_elements([{:selector=>"h1"}, {:selector=>"h1", :property=>"margin", :value=>"50px"}])
      #   => "selector = h1<br><hr>property = margin<br>value = 50px<br><hr>"
