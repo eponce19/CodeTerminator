@@ -7,7 +7,7 @@ class CodeTerminatorTest < Minitest::Test
 
   def test_html_create_new_file
       ct = CodeTerminator::Html.new
-      assert_equal ct.new_file("exercises/test.html","<h2>hola test</h2>") , true
+      assert_equal ct.new_file("exercises/test.html","<body><h2>hola test</h2><p></p></body>") , true
   end
 
   def test_html_read_file
@@ -17,6 +17,7 @@ class CodeTerminatorTest < Minitest::Test
 
   def test_html_get_elements
       ct = CodeTerminator::Html.new
+      p ct.get_elements("exercises/test.html")
       assert_equal ct.get_elements("exercises/test.html").any? , true
   end
 
@@ -33,13 +34,14 @@ class CodeTerminatorTest < Minitest::Test
   def test_html_print_elements
       ct = CodeTerminator::Html.new
       elements = ct.get_elements("exercises/test.html")
-      test_text = "name = h2<br><hr>name = text<br>content = hola test<br><hr>"
+      test_text = "parent = body<br>tag = h2<br><hr>parent = h2<br>tag = text<br>content = hola test<br><hr>parent = body<br>tag = p<br><hr>"
+      p ct.print_elements(elements)
       assert_equal ct.print_elements(elements) == test_text , true
   end
 
   def test_html_match
       ct = CodeTerminator::Html.new
-      html_errors = ct.match("exercises/test.html","<h2>hola test</h2>")
+      html_errors = ct.match("exercises/test.html","<body><h2>hola test</h2><p></p></body>")
       assert_equal html_errors.empty? , true
   end
 
