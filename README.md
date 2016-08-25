@@ -159,7 +159,7 @@ Get html elements of a html file. Return a list of Nokogiri XML objects.
 ```ruby
     >> ct = CodeTerminator::Html.new
     >> ct.get_elements("hola_mundo.html")
-     #   => [#<Nokogiri::XML::Element:0x3fe3391547d8 name="h1" children=[#<Nokogiri::XML::Text:0x3fe33915474c "Come with me if you want to live!">]>, #<Nokogiri::XML::Text:0x3fe33915474c "Come with me if you want to live!">]
+     #   => [{:parent=>"body", :tag=>"div", :attribute=>"class", :value=>"col-md-12"}, {:parent=>"div", :tag=>"h1"}, {:parent=>"h1", :tag=>"text", :content=>"Come with me if you want to live!"}]
 ```
 #####CSS
 ```ruby
@@ -174,7 +174,7 @@ Get the elements of the code in html format. Return a string with elements in ht
 **Get 'Elements Array' calling 'get_elements()'
 #####HTML
 ```ruby
-     CodeTerminator::Html.print_elements([#<Nokogiri::XML::Element:0x3fe31dc42bfc name="h1" children=[#<Nokogiri::XML::Text:0x3fe31dc42b70 "Come with me if you want to live!">]>, #<Nokogiri::XML::Text:0x3fe31dc42b70 "hola mundo">])
+     CodeTerminator::Html.print_elements(=> [{:parent=>"body", :tag=>"div", :attribute=>"class", :value=>"col-md-12"}, {:parent=>"div", :tag=>"h1"}, {:parent=>"h1", :tag=>"text", :content=>"Come with me if you want to live!"}] )
      #   => "name = h1<br><hr>name = text<br>content = Come with me if you want to live!<br><hr>"
      #
 ```

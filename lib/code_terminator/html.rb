@@ -190,6 +190,12 @@ class CodeTerminator::Html
      elements.each do |e|
        item = e[:tag]
        if item=="text"
+         if !e[:content].nil?
+           if code.css(e[:parent]).text != e[:content]
+             html_errors << e[:parent] + " haven't the same text " + e[:content]
+           end
+           e[:content] == code.css()
+         end
          #manage text
        else
        if code.css(e[:tag]).length > 0
@@ -213,7 +219,7 @@ class CodeTerminator::Html
         #if code.css(e[:tag]).parent.name != e[:parent]
            #html_errors << e[:tag] + " not exist in " + e[:parent]
         #end
-        
+
        end
 
       end
