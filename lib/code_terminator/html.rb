@@ -7,6 +7,7 @@ class CodeTerminator::Html
     @code = args[:code]
     @source = args[:source]
     @tags = Array.new
+    @elements = Array.new
   end
 
     # Create a Html file with the code of the editor. Return a boolean that indicate if the file was created or not.
@@ -44,13 +45,37 @@ class CodeTerminator::Html
      #   source: (String)
 
    def get_elements(source)
+     @elements = Array.new
      reader = Nokogiri::HTML(File.open(source))
      reader = remove_empty_text(reader)
-     reader.at('body').children.each do |child|
-       @tags.push(child)
-       add_children(child) if child.children.any?
+     reader.at('body').attribute_nodes.each do |element_attribute|
+       node[:parent] = "html"
+       node[:tag] = "body"
+       node[:attribute] = element_attribute.name if !element_attribute.name.nil?
+       node[:value] = element_attribute.value if !element_attribute.value.nil?
+       @elements << node
      end
-     @tags
+     reader.at('body').children.each do |child|
+      if child.attribute_nodes.empty?
+        node = Hash.new
+        node[:parent] = "body"
+        node[:tag] = child.name
+        node[:content] = child.text if child.text?
+        @elements << node
+      else
+        child.attribute_nodes.each do |element_attribute|
+          node = Hash.new
+          node[:parent] = "body"
+          node[:tag] = child.name
+          node[:attribute] = element_attribute.name if !element_attribute.name.nil?
+          node[:value] = element_attribute.value if !element_attribute.value.nil?
+          @elements << node
+        end
+      end
+
+      add_children(child) if child.children.any?
+     end
+     @elements
    end
 
      # Validate if the syntax is correct. Return an array with Nokogiri errors.
@@ -128,11 +153,11 @@ class CodeTerminator::Html
    def print_elements(elements)
      text = ""
      elements.each do |child|
-       text << "name = " + child.name + "<br>"
-       text << "content = " + child.text + "<br>" if child.text?
-       child.attribute_nodes.each do |child_attribute|
-          text << child.name + " attribute = " + child_attribute.name + " - " + child_attribute.value + "<br>"
-       end
+       text << "parent = " + child[:parent] + "<br>" if !child[:parent].nil?
+       text << "tag = " + child[:tag] + "<br>" if !child[:tag].nil?
+       text << "attribute = " + child[:attribute] + "<br>" if !child[:attribute].nil?
+       text << "value = " + child[:value] + "<br>" if !child[:value].nil?
+       text << "content = " + child[:content] + "<br>" if !child[:content].nil?
        text << "<hr>"
      end
      text
@@ -160,26 +185,41 @@ class CodeTerminator::Html
 
      elements = get_elements(source)
      #@elements = Html::PrintElements.call(elements)
+# '[{:parent=>"body", :tag=>"div"}, {:parent=>"body", :tag=>"div", :attribute=>"class", :value=>"col-md-12"}, {:parent=>"div", :tag=>"h2"}, {:parent=>"h2", :tag=>"text", :content=>"hola test"}, {:parent=>"div", :tag=>"h1"}] '
 
-     elements.each do |element|
-       if element.name == "text"
-         #code if element is text
+     elements.each do |e|
+       item = e[:tag]
+       if item=="text"
+         #manage text
        else
-         if code.css(element.name).length == 0
-           html_errors << element.name + " not exist"
-         else
-           element.attribute_nodes.each do |element_attribute|
-             if !code.css(element.name).attribute(element_attribute.name).nil?
-               if code.css(element.name).attribute(element_attribute.name).value != element_attribute.value
-                 html_errors << element_attribute.name + " not is the same value " + element_attribute.value
-               end
-             else
-               html_errors << element_attribute.name + " not exist"
+       if code.css(e[:tag]).length > 0
+
+         if !e[:attribute].nil?
+           if code.css(e[:tag]).attribute(e[:attribute]).nil?
+             html_errors << e[:attribute] + " not exist in " + e[:tag]
+           else
+             if code.css(e[:tag]).attribute(e[:attribute]).value != e[:value]
+               html_errors << e[:attribute] + " not is the same value " +  e[:value]
              end
            end
          end
+
+         if code.at_css(e[:tag]).parent.name != e[:parent]
+           html_errors << e[:tag] + " not exist in " + e[:parent]
+         end
+
+       else
+
+        #if code.css(e[:tag]).parent.name != e[:parent]
+           #html_errors << e[:tag] + " not exist in " + e[:parent]
+        #end
+        
        end
+
+      end
      end
+
+
      html_errors
    end
 
@@ -187,7 +227,22 @@ class CodeTerminator::Html
 
    def add_children(parent)
      parent.children.each do |child|
-       @tags.push(child)
+       if child.attribute_nodes.empty?
+          node = Hash.new
+          node[:parent] = parent.name
+          node[:tag] = child.name
+          node[:content] = child.text if child.text?
+          @elements << node
+       else
+         child.attribute_nodes.each do |element_attribute|
+           node = Hash.new
+           node[:parent] = parent.name
+           node[:tag] = child.name
+           node[:attribute] = element_attribute.name if !element_attribute.name.nil?
+           node[:value] = element_attribute.value if !element_attribute.value.nil?
+           @elements << node
+         end
+       end
        add_children(child) if child.children.any?
      end
    end
