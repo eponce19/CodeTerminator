@@ -184,9 +184,7 @@ class CodeTerminator::Html
      code = Nokogiri::HTML(code)
 
      elements = get_elements(source)
-     #@elements = Html::PrintElements.call(elements)
-# '[{:parent=>"body", :tag=>"div"}, {:parent=>"body", :tag=>"div", :attribute=>"class", :value=>"col-md-12"}, {:parent=>"div", :tag=>"h2"}, {:parent=>"h2", :tag=>"text", :content=>"hola test"}, {:parent=>"div", :tag=>"h1"}] '
-
+     
      elements.each do |e|
        item = e[:tag]
 

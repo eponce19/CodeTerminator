@@ -180,14 +180,26 @@ class CodeTerminator::Css
      elements.each do |e|
        item = e[:selector]
        if !e[:property].nil?
-         property = e[:property] + ": " + e[:value]
+
          parser_array = parser.find_by_selector(item)
          if parser_array.any?
            parser_property = parser_array[0].split(";")
            parser_property.each {|a| a.strip! if a.respond_to? :strip! }
-           if !parser_property.include?(property)
-             css_errors << "not the same property " + property + " in selector " + item
+           p parser_property.inspect
+
+           if e[:value]==""
+             property = e[:property] + ": "
+             if parser_property.empty? { |s| s.include?(property) }
+               css_errors << "not the same property " + property + " in selector " + item
+             end
+           else
+             property = e[:property] + ": " + e[:value]
+             if !parser_property.include?(property)
+               css_errors << "not the same property " + property + " in selector " + item
+             end
            end
+           p property
+
          else
           css_errors << "property "+ property + " not found in " + item
          end
