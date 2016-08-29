@@ -189,7 +189,7 @@ class CodeTerminator::Css
    #   => body { background-color: lightblue; }
    #
    #   >> CodeTerminator::Css.match("test.css","body {background-color: blue; }")
-   #   => ["not the same property background-color in selector body "]
+   #   => [{:element=>{:selector=>"body", :property=>"background-color", :value=>"yellow"}, :type=>111, :description=>"not the same property background-color: yellow in selector body"}] 
    #
    # Arguments:
    #   source: (String)

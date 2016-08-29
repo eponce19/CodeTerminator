@@ -92,7 +92,7 @@ Match if the code have the same elements than the exercise. Return an array with
 ```ruby
    >> ct = CodeTerminator::Html.new
    >> ct.match("hola_mundo.html","<h2>Come with me if you want to live!</h2>")
-   #   => ["h1 not exist"]
+   #  => [{:element=>{:parent=>"body", :tag=>"p"}, :type=>404, :description=>"p not exist"}]
    #
 ```
 
@@ -104,9 +104,29 @@ Match if the code have the same elements than the exercise. Return an array with
 ```ruby
    >> ct = CodeTerminator::Css.new
    >> ct.match("hola_mundo.css","h1{ margin: 50px; }")
-   #   => ["not the same property margin: 100px in selector h1"]
+   #  => [{:element=>{:selector=>"body", :property=>"background-color", :value=>"yellow"}, :type=>111, :description=>"not the same property background-color: yellow in selector body"}]
+
    #
 ```
+
+######Errors description
+The errors that throw match() are in json format to help you to identify each error type as the following:
+```ruby
+  # [element, error_type, description]
+  [{:element=>{:selector=>"body", :property=>"background-color", :value=>"yellow"}, :type=>111, :description=>"not the same property background-color: yellow in selector body"}]
+```
+Errors Types
+<ul>
+  <li><b>101 : </b>Css property not found</li>
+  <li><b>111 : </b>Different css property in the selector</li>
+  <li><b>330 : </b>Different text in the html tag</li>
+  <li><b>333 : </b>Different value in the html attribute</li>
+  <li><b>334 : </b>Html attribute doesn't exist in the tag</li>
+  <li><b>404 : </b>Element not found</li>
+  <li><b>440 : </b>Tag not found in the parent tag</li>
+</ul>
+
+<br>
 
 ###new_file(source, code)
 Create a Html/Css file with the code of the editor. Return a boolean that indicate if the file was created or not.
