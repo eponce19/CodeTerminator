@@ -152,6 +152,32 @@ class CodeTerminator::Css
      text
    end
 
+   # Get the instructions to recreate the html code. Return an array with strings .
+   #
+   # Example:
+   #   >> CodeTerminator::Css.get_instructions(file.get_elements("exercises/test.css"))
+   #   => [["Create the selector body", "In the selector body add the property 'background-color' with value 'yellow' "]
+   #
+   # Arguments:
+   #   instructions: (Array)
+
+   def get_instructions(elements)
+     text = ""
+     instructions = Array.new
+     elements.each do |child|
+       if child[:property].nil?
+         text << "Create the selector " + child[:selector]
+       else
+         text << "In the selector " + child[:selector] + " add the property '"  + child[:property] + "'"  if !child[:property].nil?
+         text << " with value '" + child[:value] + "' " if !child[:value].nil?
+       end
+       instructions.push(text)
+       text = ""
+     end
+     instructions
+   end
+
+
 
    # Match if the code have the same elements than the exercise. Return an array with the mismatches.
 

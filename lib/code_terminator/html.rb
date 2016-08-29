@@ -163,6 +163,34 @@ class CodeTerminator::Html
      text
    end
 
+   # Get the instructions to recreate the html code. Return an array with strings .
+   #
+   # Example:
+   #   >> CodeTerminator::Html.get_instructions(file.get_elements("exercises/test.html"))
+   #   => ["Add the tag h2 in body", "Add the tag text in h2 with content 'hola test' ", "Add the tag p in body"]
+   #
+   # Arguments:
+   #   instructions: (Array)
+
+   def get_instructions(elements)
+     text = ""
+     instructions = Array.new
+     elements.each do |child|
+       if child[:tag]!="text"
+         text << "Add the tag " + child[:tag]
+         text << " in "  + child[:parent]  if !child[:parent].nil?
+         text << " with an attribute '" + child[:attribute] + "' " if !child[:attribute].nil?
+         text << " with value '" + child[:value] + "' " if !child[:value].nil?
+       else
+         text << " In " + child[:parent]+ " add the text '" + child[:content]  + "' "  if !child[:content].nil?
+       end
+       instructions.push(text)
+       text = ""
+     end
+     instructions
+   end
+
+
 
    # Match if the code have the same elements than the exercise. Return an array with the mismatches.
    #
