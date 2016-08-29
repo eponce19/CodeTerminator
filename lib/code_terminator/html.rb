@@ -184,7 +184,7 @@ class CodeTerminator::Html
      code = Nokogiri::HTML(code)
 
      elements = get_elements(source)
-     
+
      elements.each do |e|
        item = e[:tag]
 
@@ -192,7 +192,11 @@ class CodeTerminator::Html
 
          if !e[:content].nil?
            if code.css(e[:parent]).text != e[:content]
-             html_errors << e[:parent] + " haven't the same text " + e[:content]
+             node = Hash.new
+             node[:element] = e
+             node[:type] = 330
+             node[:description] = e[:parent] + " haven't the same text " + e[:content]
+             html_errors << node
            end
            #e[:content] == code.css()
 
@@ -203,22 +207,38 @@ class CodeTerminator::Html
 
          if !e[:attribute].nil?
            if code.css(e[:tag]).attribute(e[:attribute]).nil?
-             html_errors << e[:attribute] + " not exist in " + e[:tag]
+             node = Hash.new
+             node[:element] = e
+             node[:type] = 334
+             node[:description] = e[:attribute] + " not exist in " + e[:tag]
+             html_errors << node
            else
              if code.css(e[:tag]).attribute(e[:attribute]).value != e[:value]
-               html_errors << e[:attribute] + " not is the same value " +  e[:value]
+               node = Hash.new
+               node[:element] = e
+               node[:type] = 333
+               node[:description] = e[:attribute] + " not is the same value " +  e[:value]
+               html_errors << node
              end
            end
          end
 
          if code.at_css(e[:tag]).parent.name != e[:parent]
-           html_errors << e[:tag] + " not exist in " + e[:parent]
+           node = Hash.new
+           node[:element] = e
+           node[:type] = 440
+           node[:description] =  e[:tag] + " not exist in " + e[:parent]
+           html_errors << node
          end
 
        else
 
           if code.at_css(e[:tag]).nil?
-            html_errors << e[:tag] + " not exist in " + e[:parent]
+            node = Hash.new
+            node[:element] = e
+            node[:type] = 404
+            node[:description] =  e[:tag] + " not exist"
+            html_errors << node
           end
 
        end

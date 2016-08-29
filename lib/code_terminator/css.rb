@@ -185,23 +185,33 @@ class CodeTerminator::Css
          if parser_array.any?
            parser_property = parser_array[0].split(";")
            parser_property.each {|a| a.strip! if a.respond_to? :strip! }
-           p parser_property.inspect
 
            if e[:value]==""
              property = e[:property] + ": "
              if parser_property.empty? { |s| s.include?(property) }
-               css_errors << "not the same property " + property + " in selector " + item
+               node = Hash.new
+               node[:element] = e
+               node[:type] = 111
+               node[:description] =  "not the same property " + property + " in selector " + item
+               css_errors << node
              end
            else
              property = e[:property] + ": " + e[:value]
              if !parser_property.include?(property)
-               css_errors << "not the same property " + property + " in selector " + item
+               node = Hash.new
+               node[:element] = e
+               node[:type] = 111
+               node[:description] =  "not the same property " + property + " in selector " + item
+               css_errors << node
              end
            end
-           p property
 
          else
-          css_errors << "property "+ property + " not found in " + item
+           node = Hash.new
+           node[:element] = e
+           node[:type] = 101
+           node[:description] =  "property "+ property + " not found in " + item
+           css_errors << node
          end
        end
      end
