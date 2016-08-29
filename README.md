@@ -50,7 +50,7 @@ You will know that the code and the source file have the same html elements when
 	# 	<h1>Come with me if you want to live!</h1>
 	#
     >> ct.match("hola_mundo.html","<h2>Come with me if you want to live!</h2>")
-    #   => ["h1 not exist"]
+    #  => [{:element=>{:parent=>"body", :tag=>"p"}, :type=>404, :description=>"p not exist"}]
 ```
 
 ##### CSS
@@ -76,7 +76,7 @@ You will know that the code and the source file have the same css elements when 
 	# => h1{ margin: 100px; }
 	#
     >> ct.match("test.html","h1{ margin: 50px; }")
-    #   => ["not the same property margin: 100px in selector h1"]
+    #  => [{:element=>{:selector=>"body", :property=>"background-color", :value=>"yellow"}, :type=>111, :description=>"not the same property background-color: yellow in selector body"}]
 ```
 
 ##Cheat Sheet
