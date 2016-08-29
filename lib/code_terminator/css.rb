@@ -134,7 +134,7 @@ class CodeTerminator::Css
      # Get the elements of the code in css format. Return a string with elements in css.
      #
      # Example:
-     #   >> CodeTerminator::Css.print_elements([{:selector=>"body"}, {:selector=>"body", :property=>"background-color", :value=>"lightblue"}] )
+     #   >> CodeTerminator::Css.print_elements("exercises/hola_mundo.css" )
      #   => "selector = body<br><hr>selector = body<br>property = background-color<br>value = lightblue<br><hr>"
      #
      # Arguments:
@@ -142,6 +142,7 @@ class CodeTerminator::Css
 
 
    def print_elements(elements)
+     elements = get_elements(source)
      text = ""
      elements.each do |child|
        text << "selector = " + child[:selector] + "<br>"
@@ -161,7 +162,8 @@ class CodeTerminator::Css
    # Arguments:
    #   instructions: (Array)
 
-   def get_instructions(elements)
+   def get_instructions(source)
+     elements = get_elements(source)
      text = ""
      instructions = Array.new
      elements.each do |child|

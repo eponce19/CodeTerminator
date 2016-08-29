@@ -154,7 +154,7 @@ Validate if the syntax is correct. Return an array with errors.
 ```
 
 ###get_elements(source)
-Get html elements of a html file. Return a list of Nokogiri XML objects.
+Get html elements of a html file. Return a list of elements with their properties.
 #####HTML
 ```ruby
     >> ct = CodeTerminator::Html.new
@@ -168,19 +168,33 @@ Get html elements of a html file. Return a list of Nokogiri XML objects.
      #   => [{:selector=>"h1"}, {:selector=>"h1", :property=>"margin", :value=>"50px"}]
 ```
 
-###print_elements(Elements Array)
-Get the elements of the code in html format. Return a string with elements in html.
-<br>
-**Get 'Elements Array' calling 'get_elements()'
+###get_instructions(source)
+Get the instructions to recreate the html code. Return an array with strings .
 #####HTML
 ```ruby
-     CodeTerminator::Html.print_elements(=> [{:parent=>"body", :tag=>"div", :attribute=>"class", :value=>"col-md-12"}, {:parent=>"div", :tag=>"h1"}, {:parent=>"h1", :tag=>"text", :content=>"Come with me if you want to live!"}] )
+    >> ct = CodeTerminator::Html.new
+    >> ct.get_instructions("hola_mundo.html")
+     #   => ["Add the tag h2 in body", " In h2 add the text 'hola test' ", "Add the tag p in body"]
+```
+#####CSS
+```ruby
+    >> ct = CodeTerminator::Css.new
+    >> ct.get_instructions("hola_mundo.css")
+     #   => ["Create the selector body", "In the selector body add the property ' background-color'  with value 'yellow' "]
+```
+
+###print_elements(source)
+Get the elements of the code in html format. Return a string with elements in html.
+<br>
+#####HTML
+```ruby
+     CodeTerminator::Html.print_elements("exercises/hola_mundo.html" )
      #   => "name = h1<br><hr>name = text<br>content = Come with me if you want to live!<br><hr>"
      #
 ```
 #####CSS
 ```ruby
-     CodeTerminator::Css.print_elements([{:selector=>"h1"}, {:selector=>"h1", :property=>"margin", :value=>"50px"}])
+     CodeTerminator::Css.print_elements("exercises/hola_mundo.css" )
      #   => "selector = h1<br><hr>property = margin<br>value = 50px<br><hr>"
      #
 ```
