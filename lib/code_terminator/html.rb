@@ -220,15 +220,23 @@ class CodeTerminator::Html
        if item=="text"
 
          if !e[:content].nil?
-           if code.css(e[:parent]).text != e[:content]
-             node = Hash.new
-             node[:element] = e
-             node[:type] = 330
-             node[:description] = e[:parent] + " haven't the same text " + e[:content]
-             html_errors << node
+           if code.css(e[:parent]).count < 2
+             if code.css(e[:parent]).text != e[:content]
+               html_errors << new_error(element: e, type: 330, description: e[:parent] + " haven't the same text " + e[:content])
+             end
+           else
+             exist = false
+             code.css(e[:parent]).each do |code_css|
+               #if code_css.at_css(e[:tag]).parent.name == e[:parent]
+                 if code_css.text == e[:content]
+                   exist = true
+                 end
+               #end
+             end
+             if !exist
+              html_errors << new_error(element: e, type: 330, description: e[:parent] + " haven't the same text " + e[:content])
+             end
            end
-           #e[:content] == code.css()
-
         end
 
        else
@@ -236,45 +244,40 @@ class CodeTerminator::Html
 
          if !e[:attribute].nil?
            if code.css(e[:tag]).attribute(e[:attribute]).nil?
-             node = Hash.new
-             node[:element] = e
-             node[:type] = 334
-             node[:description] = e[:attribute] + " not exist in " + e[:tag]
-             html_errors << node
+             html_errors << new_error(element: e, type: 334, description: e[:attribute] + " not exist in " + e[:tag])
            else
              if code.css(e[:tag]).attribute(e[:attribute]).value != e[:value]
-               node = Hash.new
-               node[:element] = e
-               node[:type] = 333
-               node[:description] = e[:attribute] + " not is the same value " +  e[:value]
-               html_errors << node
+               html_errors << new_error(element: e, type: 333, description: e[:attribute] + " not is the same value " +  e[:value])
              end
            end
          end
 
-         if code.at_css(e[:tag]).parent.name != e[:parent]
-           node = Hash.new
-           node[:element] = e
-           node[:type] = 440
-           node[:description] =  e[:tag] + " not exist in " + e[:parent]
-           html_errors << node
+         if code.css(e[:tag]).count < 2
+         if code.css(e[:tag]).first.parent.name != e[:parent]
+           html_errors << new_error(element: e, type: 440, description: e[:tag] + " not exist in " + e[:parent])
+         end
+         else
+           exist_in_parent = false
+           code.css(e[:tag]).each do |code_css|
+              if code_css.parent.name == e[:parent]
+                exist_in_parent = true
+              end
+            end
+            if !exist_in_parent
+              html_errors << new_error(element: e, type: 440, description: e[:tag] + " not exist in " + e[:parent])
+            end
          end
 
        else
 
           if code.at_css(e[:tag]).nil?
-            node = Hash.new
-            node[:element] = e
-            node[:type] = 404
-            node[:description] =  e[:tag] + " not exist"
-            html_errors << node
+            html_errors << new_error(element: e, type: 404, description:  e[:tag] + " not exist")
           end
 
        end
 
       end
      end
-
 
      html_errors
    end
@@ -320,6 +323,17 @@ class CodeTerminator::Html
        end
        check_children(child) if child.children.any?
      end
+   end
+
+   def new_error(args = {})
+     element = args[:element]
+     type = args[:type]
+     description = args[:description]
+     node = Hash.new
+     node[:element] = element
+     node[:type] = type
+     node[:description] =  description
+     node
    end
 
   #end

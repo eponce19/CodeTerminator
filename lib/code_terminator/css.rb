@@ -189,7 +189,7 @@ class CodeTerminator::Css
    #   => body { background-color: lightblue; }
    #
    #   >> CodeTerminator::Css.match("test.css","body {background-color: blue; }")
-   #   => [{:element=>{:selector=>"body", :property=>"background-color", :value=>"yellow"}, :type=>111, :description=>"not the same property background-color: yellow in selector body"}] 
+   #   => [{:element=>{:selector=>"body", :property=>"background-color", :value=>"yellow"}, :type=>111, :description=>"not the same property background-color: yellow in selector body"}]
    #
    # Arguments:
    #   source: (String)
@@ -217,29 +217,18 @@ class CodeTerminator::Css
            if e[:value]==""
              property = e[:property] + ": "
              if parser_property.empty? { |s| s.include?(property) }
-               node = Hash.new
-               node[:element] = e
-               node[:type] = 111
-               node[:description] =  "not the same property " + property + " in selector " + item
-               css_errors << node
+               css_errors << new_error(element: e, type: 111, description: "not the same property " + property + " in selector " + item)
              end
            else
              property = e[:property] + ": " + e[:value]
              if !parser_property.include?(property)
-               node = Hash.new
-               node[:element] = e
-               node[:type] = 111
-               node[:description] =  "not the same property " + property + " in selector " + item
-               css_errors << node
+               css_errors << new_error(element: e, type: 111, description: "not the same property " + property + " in selector " + item)
              end
            end
 
          else
            node = Hash.new
-           node[:element] = e
-           node[:type] = 101
-           node[:description] =  "property "+ property + " not found in " + item
-           css_errors << node
+           css_errors << new_error(element: e, type: 101, description:  "property "+ property + " not found in " + item)
          end
        end
      end
@@ -248,7 +237,16 @@ class CodeTerminator::Css
 
    private
 
-
+   def new_error(args = {})
+     element = args[:element]
+     type = args[:type]
+     description = args[:description]
+     node = Hash.new
+     node[:element] = element
+     node[:type] = type
+     node[:description] =  description
+     node
+   end
   #end
 
 end
