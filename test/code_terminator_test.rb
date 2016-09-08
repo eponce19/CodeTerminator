@@ -67,7 +67,6 @@ class CodeTerminatorTest < Minitest::Test
 
   def test_css_get_elements
       ct = CodeTerminator::Css.new
-      p ct.get_elements("exercises/test.css")
       assert_equal ct.get_elements("exercises/test.css").any? , true
   end
 
@@ -89,12 +88,12 @@ class CodeTerminatorTest < Minitest::Test
       #assert_equal ct.validate_syntax("") , false
   end
 
-  def test_css_print_elements
-      ct = CodeTerminator::Css.new
-      elements = ct.get_elements("exercises/test.css")
-      test_text = "selector = body<br><hr>selector = body<br>property = background-color<br>value = lightblue<br><hr>"
-      assert_equal ct.print_elements(elements) == test_text , true
-  end
+  # def test_css_print_elements
+  #     ct = CodeTerminator::Css.new
+  #     elements = ct.get_elements("exercises/test.css")
+  #     test_text = "selector = body<br><hr>selector = body<br>property = background-color<br>value = lightblue<br><hr>"
+  #     assert_equal ct.print_elements(elements) == test_text , true
+  # end
 
   def test_css_match
       ct = CodeTerminator::Css.new
@@ -108,4 +107,11 @@ class CodeTerminatorTest < Minitest::Test
       assert_equal css_errors.empty? , false
   end
 
+  def test_js_validate_syntax
+      ct = CodeTerminator::Js.new
+      p "syntax javascript"
+      p ct.validate_syntax("exercises/js/calculator.js")
+      assert_equal ct.validate_syntax("exercises/js/calculator.js").any? , false
+      #assert_equal ct.validate_syntax("") , false
+  end
 end
