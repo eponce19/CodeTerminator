@@ -21,7 +21,7 @@ class CodeTerminator::Js
   def validate_syntax(source)
     j = Jshint::Lint.new
     j.config.options["files"] = source
-    p j.lint
+    j.lint
     p j.errors
     p j.config
     p j
