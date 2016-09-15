@@ -51,9 +51,6 @@ class CodeTerminatorTest < Minitest::Test
       assert_equal html_errors.empty? , false
   end
 
-
-
-
   def test_css_create_new_file
       ct = CodeTerminator::Css.new
       assert_equal ct.new_file("exercises/test.css","body {
@@ -91,9 +88,8 @@ class CodeTerminatorTest < Minitest::Test
 
   def test_css_print_elements
       ct = CodeTerminator::Css.new
-      elements = ct.get_elements("exercises/test.css")
       test_text = "selector = body<br><hr>selector = body<br>property = background-color<br>value = lightblue<br><hr>"
-      assert_equal ct.print_elements(elements) == test_text , true
+      assert_equal ct.print_elements("exercises/test.css") == test_text , true
   end
 
   def test_css_match
