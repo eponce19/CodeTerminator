@@ -141,7 +141,7 @@ class CodeTerminator::Css
      #   elements: (Array)
 
 
-   def print_elements(elements)
+   def print_elements(source)
      elements = get_elements(source)
      text = ""
      elements.each do |child|

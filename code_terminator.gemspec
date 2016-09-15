@@ -21,6 +21,13 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.10"
   spec.add_development_dependency "rake", "~> 10.0"
-  spec.add_development_dependency 'minitest', '~> 0'
+  spec.add_development_dependency 'minitest', '> 0'
 
+  spec.add_dependency 'rails', '>= 4.2.5'
+  spec.add_dependency 'jbuilder', '~> 2.0'
+
+  spec.add_dependency 'html5_validator', '~> 1.0.0'
+  spec.add_dependency 'nokogiri', '~> 1.6.0'
+  spec.add_dependency 'crass', '~> 1.0.0'
+  spec.add_dependency 'css_parser', '~> 1.3.0'
 end
