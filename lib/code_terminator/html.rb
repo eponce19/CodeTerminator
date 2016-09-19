@@ -8,6 +8,9 @@ class CodeTerminator::Html
     @source = args[:source]
     @tags = Array.new
     @elements = Array.new
+
+    args[:source_type] ||= "file"
+    @source_type = args[:source_type]
   end
 
     # Create a Html file with the code of the editor. Return a boolean that indicate if the file was created or not.
@@ -46,7 +49,11 @@ class CodeTerminator::Html
 
    def get_elements(source)
      @elements = Array.new
-     reader = Nokogiri::HTML(File.open(source))
+     if @source_type == "url"
+       reader = Nokogiri::HTML(open(source).read)
+     else
+       reader = Nokogiri::HTML(File.open(source))
+     end
      reader = remove_empty_text(reader)
      reader.at('body').attribute_nodes.each do |element_attribute|
        node[:parent] = "html"
@@ -125,7 +132,12 @@ class CodeTerminator::Html
      #   source: (String)
 
    def read_file(source)
-     fileHtml = File.open(source, "r")
+     if @source_type == "url"
+       fileHtml = open(source).read
+     else
+       fileHtml = File.open(source, "r")
+     end
+
      text = ""
      begin
        fileHtml.each_line do |line|
