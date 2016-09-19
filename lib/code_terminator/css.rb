@@ -9,6 +9,9 @@ class CodeTerminator::Css
     @code = args[:code]
     @source = args[:source]
     @tags = Array.new
+
+    args[:source_type] ||= "file"
+    @source_type = args[:source_type]
   end
 
     # Create a CSS file with the code of the editor. Return a boolean that indicate if the file was created or not.
@@ -115,7 +118,12 @@ class CodeTerminator::Css
      #   source: (String)
 
    def read_file(source)
-     fileCss = File.open(source, "r")
+     if @source_type == "url"
+       fileCss = open(source).read
+     else
+       fileCss = File.open(source, "r")
+     end
+
      text = ""
      begin
        fileCss.each_line do |line|
