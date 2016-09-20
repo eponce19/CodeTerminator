@@ -102,11 +102,11 @@ class CodeTerminator::Css
       #else
         #valid = false
       end
-    else
+     else
       errors[0] = "error"
-    end
+     end
     errors
-  end
+   end
 
      # Read a css file. Return a string with the text of the file.
      #
@@ -120,20 +120,19 @@ class CodeTerminator::Css
    def read_file(source)
      if @source_type == "url"
        fileCss = open(source).read
+       text = fileCss
      else
        fileCss = File.open(source, "r")
-     end
-
-     text = ""
-     begin
-       fileCss.each_line do |line|
-         text << line
+       begin
+         fileCss.each_line do |line|
+           text << line
+         end
+         fileCss.close
+       rescue
+         text = false
+       ensure
+         #fileHtml.close unless fileHtml.nil?
        end
-       fileCss.close
-     rescue
-       text = false
-     ensure
-       #fileHtml.close unless fileHtml.nil?
      end
 
      text
@@ -216,7 +215,7 @@ class CodeTerminator::Css
      elements.each do |e|
        item = e[:selector]
        if !e[:property].nil?
-
+         property = e[:property]
          parser_array = parser.find_by_selector(item)
          if parser_array.any?
            parser_property = parser_array[0].split(";")
@@ -236,7 +235,7 @@ class CodeTerminator::Css
 
          else
            node = Hash.new
-           css_errors << new_error(element: e, type: 101, description:  "property "+ property + " not found in " + item)
+           css_errors << new_error(element: e, type: 101, description:  "property " + property + " not found in " + item)
          end
        end
      end
