@@ -256,17 +256,17 @@ class CodeTerminator::Html
 
          if !e[:attribute].nil?
            if code.css(e[:tag]).attribute(e[:attribute]).nil?
-             html_errors << new_error(element: e, type: 334, description: e[:attribute] + " not exist in " + e[:tag])
+             html_errors << new_error(element: e, type: 334, description: e[:attribute] + " didn't exist in " + e[:tag])
            else
              if code.css(e[:tag]).attribute(e[:attribute]).value != e[:value]
-               html_errors << new_error(element: e, type: 333, description: e[:attribute] + " not is the same value " +  e[:value])
+               html_errors << new_error(element: e, type: 333, description: e[:attribute] + " isn't the same value " +  e[:value])
              end
            end
          end
 
          if code.css(e[:tag]).count < 2
          if code.css(e[:tag]).first.parent.name != e[:parent]
-           html_errors << new_error(element: e, type: 440, description: e[:tag] + " not exist in " + e[:parent])
+           html_errors << new_error(element: e, type: 440, description: e[:tag] + " didn't exist in " + e[:parent])
          end
          else
            exist_in_parent = false
@@ -276,14 +276,14 @@ class CodeTerminator::Html
               end
             end
             if !exist_in_parent
-              html_errors << new_error(element: e, type: 440, description: e[:tag] + " not exist in " + e[:parent])
+              html_errors << new_error(element: e, type: 440, description: e[:tag] + " didn't exist in " + e[:parent])
             end
          end
 
        else
 
           if code.at_css(e[:tag]).nil?
-            html_errors << new_error(element: e, type: 404, description:  e[:tag] + " not exist")
+            html_errors << new_error(element: e, type: 404, description:  e[:tag] + " didn't exist")
           end
 
        end

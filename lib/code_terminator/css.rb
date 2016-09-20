@@ -224,18 +224,18 @@ class CodeTerminator::Css
            if e[:value]==""
              property = e[:property] + ": "
              if parser_property.empty? { |s| s.include?(property) }
-               css_errors << new_error(element: e, type: 111, description: "not the same property " + property + " in selector " + item)
+               css_errors << new_error(element: e, type: 111, description: "Different property " + property + " on selector " + item)
              end
            else
              property = e[:property] + ": " + e[:value]
              if !parser_property.include?(property)
-               css_errors << new_error(element: e, type: 111, description: "not the same property " + property + " in selector " + item)
+               css_errors << new_error(element: e, type: 111, description: "Different property " + property + " on selector " + item)
              end
            end
 
          else
            node = Hash.new
-           css_errors << new_error(element: e, type: 101, description:  "property " + property + " not found in " + item)
+           css_errors << new_error(element: e, type: 101, description:  "Property " + property + " not found on " + item)
          end
        end
      end
