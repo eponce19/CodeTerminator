@@ -1,4 +1,3 @@
-require 'Nokogiri'
 require 'active_support/core_ext/string/filters'
 
 class CodeTerminator::Html
