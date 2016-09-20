@@ -1,6 +1,3 @@
-require 'Nokogiri'
-require 'Crass'
-require 'css_parser'
 require 'active_support/core_ext/string/filters'
 
 class CodeTerminator::Css
