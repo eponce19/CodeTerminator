@@ -61,6 +61,33 @@ class CodeTerminator::Html
        node[:value] = element_attribute.value if !element_attribute.value.nil?
        @elements << node
      end
+
+     reader.at('head').children.each do |child|
+      if child.attribute_nodes.empty?
+        node = Hash.new
+        node[:parent] = "head"
+        node[:tag] = child.name
+        node[:content] = child.text if !child.text.nil?
+        @elements << node
+      else
+        child.attribute_nodes.each do |element_attribute|
+          node = Hash.new
+          node[:parent] = "head"
+          if child.name == "#cdata-section"
+            node[:tag] = "text"
+          else
+            node[:tag] = child.name
+          end
+          # node[:tag] = ( ? "text", child.name)
+          node[:content] = child.text if !child.text.nil?
+          node[:attribute] = element_attribute.name if !element_attribute.name.nil?
+          node[:value] = element_attribute.value if !element_attribute.value.nil?
+          @elements << node
+        end
+      end
+      add_children(child) if child.children.any?
+    end
+
      reader.at('body').children.each do |child|
       if child.attribute_nodes.empty?
         node = Hash.new
@@ -78,7 +105,6 @@ class CodeTerminator::Html
           @elements << node
         end
       end
-
       add_children(child) if child.children.any?
      end
      @elements
@@ -302,14 +328,24 @@ class CodeTerminator::Html
        if child.attribute_nodes.empty?
           node = Hash.new
           node[:parent] = parent.name
-          node[:tag] = child.name
-          node[:content] = child.text if child.text?
+          # node[:tag] = child.name
+          if child.name == "#cdata-section"
+            node[:tag] = "text"
+          else
+            node[:tag] = child.name
+          end
+          node[:content] = child.text if !child.text.nil?
           @elements << node
        else
          child.attribute_nodes.each do |element_attribute|
            node = Hash.new
            node[:parent] = parent.name
-           node[:tag] = child.name
+          #  node[:tag] = child.name
+           if element_attribute.name == "#cdata-section"
+             node[:tag] = "text"
+           else
+             node[:tag] = element_attribute.name
+           end
            node[:attribute] = element_attribute.name if !element_attribute.name.nil?
            node[:value] = element_attribute.value if !element_attribute.value.nil?
            @elements << node
@@ -320,8 +356,8 @@ class CodeTerminator::Html
    end
 
    def remove_empty_text (reader)
-     reader.at("body").children.each do |child|
-       if child.text?
+     reader.at('html').children.each do |child|
+       if !child.text.nil?
          child.remove if child.content.to_s.squish.empty?
        end
         check_children(child) if child.children.any?
@@ -331,7 +367,7 @@ class CodeTerminator::Html
 
    def check_children(parent)
      parent.children.each do |child|
-       if child.text?
+       if !child.text.nil?
          child.remove if child.content.to_s.squish.empty?
        end
        check_children(child) if child.children.any?
