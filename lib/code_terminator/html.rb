@@ -62,6 +62,7 @@ class CodeTerminator::Html
        @elements << node
      end
 
+     if !reader.at('head').nil?
      reader.at('head').children.each do |child|
       if child.attribute_nodes.empty?
         node = Hash.new
@@ -86,6 +87,7 @@ class CodeTerminator::Html
         end
       end
       add_children(child) if child.children.any?
+    end
     end
 
      reader.at('body').children.each do |child|
