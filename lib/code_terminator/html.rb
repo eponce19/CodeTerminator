@@ -253,7 +253,10 @@ class CodeTerminator::Html
 
      elements = get_elements(source)
 
+     exist_in_body = false
+     error333=nil
      elements.each do |e|
+       exist_in_body = false
        item = e[:tag]
 
        if item=="text"
@@ -280,27 +283,39 @@ class CodeTerminator::Html
         end
 
        else
+        #  exist_in_body = false
        if code.css(e[:tag]).length > 0
 
+        code.css(e[:tag]).each do |tag|
+
+          p "------tag-------"
+          p tag
          if !e[:attribute].nil?
           #  Check the tag's attributes
-           if code.css(e[:tag]).attribute(e[:attribute]).nil?
+           if tag.attribute(e[:attribute]).nil?
              html_errors << new_error(element: e, type: 334, description: "#{e[:tag]} should have an attribute named #{e[:attribute]}.")
            else
-             if code.css(e[:tag]).attribute(e[:attribute]).value != e[:value]
-               html_errors << new_error(element: e, type: 333, description: "Make sure that the attribute #{e[:attribute]} in #{e[:tag]} has the value #{e[:value]}.")
+             if tag.attribute(e[:attribute]).value != e[:value]
+               if !exist_in_body
+                 error333 = new_error(element: e, type: 333, description: "Make sure that the attribute #{e[:attribute]} in #{e[:tag]} has the value #{e[:value]}.")
+               end
+             else
+               exist_in_body = true
              end
            end
          end
 
+        #  exist_in_body = false
         #  Check that tags exist within parent tags
-         if code.css(e[:tag]).count < 2
-           if code.css(e[:tag]).first.parent.name != e[:parent]
+        if tag.first.respond_to? :parent
+
+         if tag.count < 2 && !tag.first.nil?
+           if tag.first.parent.name != e[:parent]
              html_errors << new_error(element: e, type: 440, description: "Remember to add the #{e[:tag]} tag inside #{e[:parent]}.")
            end
          else
-           exist_in_parent = false
-           code.css(e[:tag]).each do |code_css|
+          exist_in_parent = false
+           tag.each do |code_css|
               if code_css.parent.name == e[:parent]
                 exist_in_parent = true
               end
@@ -309,6 +324,8 @@ class CodeTerminator::Html
               html_errors << new_error(element: e, type: 440, description: "Remember to add the #{e[:tag]} tag inside #{e[:parent]}.")
             end
          end
+        end
+        end
 
        else
          #  Check that the tag is present
@@ -317,7 +334,12 @@ class CodeTerminator::Html
           end
        end
 
+
+
       end
+
+        html_errors << error333 if !error333.nil?
+
      end
 
      html_errors
@@ -342,9 +364,11 @@ class CodeTerminator::Html
          child.attribute_nodes.each do |element_attribute|
            node = Hash.new
            node[:parent] = parent.name
-          #  node[:tag] = child.name
+          #  node[:tag] = child.namecode
            if element_attribute.name == "#cdata-section"
              node[:tag] = "text"
+           elsif element_attribute.name == "href"
+             node[:tag] = child.name
            else
              node[:tag] = element_attribute.name
            end
