@@ -253,10 +253,12 @@ class CodeTerminator::Html
 
      elements = get_elements(source)
 
-     exist_in_body = false
-     error333=nil
+     exist_in_body = Array.new
+
+     error333 = nil
+     
      elements.each do |e|
-       exist_in_body = false
+
        item = e[:tag]
 
        if item=="text"
@@ -283,29 +285,26 @@ class CodeTerminator::Html
         end
 
        else
-        #  exist_in_body = false
+
        if code.css(e[:tag]).length > 0
 
         code.css(e[:tag]).each do |tag|
 
-          p "------tag-------"
-          p tag
          if !e[:attribute].nil?
           #  Check the tag's attributes
            if tag.attribute(e[:attribute]).nil?
              html_errors << new_error(element: e, type: 334, description: "#{e[:tag]} should have an attribute named #{e[:attribute]}.")
            else
              if tag.attribute(e[:attribute]).value != e[:value]
-               if !exist_in_body
+                 exist_in_body << false
                  error333 = new_error(element: e, type: 333, description: "Make sure that the attribute #{e[:attribute]} in #{e[:tag]} has the value #{e[:value]}.")
-               end
              else
-               exist_in_body = true
+               exist_in_body << true
              end
+
            end
          end
 
-        #  exist_in_body = false
         #  Check that tags exist within parent tags
         if tag.first.respond_to? :parent
 
@@ -334,11 +333,12 @@ class CodeTerminator::Html
           end
        end
 
-
+       if !exist_in_body.empty? && !exist_in_body.include?(true) && !error333.nil?
+         html_errors << error333
+       end
+       exist_in_body = []
 
       end
-
-        html_errors << error333 if !error333.nil?
 
      end
 
