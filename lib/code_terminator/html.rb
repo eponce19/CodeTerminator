@@ -54,13 +54,15 @@ class CodeTerminator::Html
        reader = Nokogiri::HTML(File.open(source))
      end
      reader = remove_empty_text(reader)
-     reader.at('body').attribute_nodes.each do |element_attribute|
-       node[:parent] = "html"
-       node[:tag] = "body"
-       node[:attribute] = element_attribute.name if !element_attribute.name.nil?
-       node[:value] = element_attribute.value if !element_attribute.value.nil?
-       @elements << node
-     end
+       if !reader.at('body').nil?
+         reader.at('body').attribute_nodes.each do |element_attribute|
+           node[:parent] = "html"
+           node[:tag] = "body"
+           node[:attribute] = element_attribute.name if !element_attribute.name.nil?
+           node[:value] = element_attribute.value if !element_attribute.value.nil?
+           @elements << node
+         end
+       end
 
      if !reader.at('head').nil?
      reader.at('head').children.each do |child|
@@ -89,25 +91,26 @@ class CodeTerminator::Html
       add_children(child) if child.children.any?
     end
     end
-
-     reader.at('body').children.each do |child|
-      if child.attribute_nodes.empty?
-        node = Hash.new
-        node[:parent] = "body"
-        node[:tag] = child.name
-        node[:content] = child.text if child.text?
-        @elements << node
-      else
-        child.attribute_nodes.each do |element_attribute|
+    if !reader.at('body').nil?
+      reader.at('body').children.each do |child|
+        if child.attribute_nodes.empty?
           node = Hash.new
           node[:parent] = "body"
           node[:tag] = child.name
-          node[:attribute] = element_attribute.name if !element_attribute.name.nil?
-          node[:value] = element_attribute.value if !element_attribute.value.nil?
+          node[:content] = child.text if child.text?
           @elements << node
+        else
+          child.attribute_nodes.each do |element_attribute|
+            node = Hash.new
+            node[:parent] = "body"
+            node[:tag] = child.name
+            node[:attribute] = element_attribute.name if !element_attribute.name.nil?
+            node[:value] = element_attribute.value if !element_attribute.value.nil?
+            @elements << node
+          end
         end
+        add_children(child) if child.children.any?
       end
-      add_children(child) if child.children.any?
      end
      @elements
    end
@@ -256,7 +259,7 @@ class CodeTerminator::Html
      exist_in_body = Array.new
 
      error333 = nil
-     
+
      elements.each do |e|
 
        item = e[:tag]
@@ -382,12 +385,22 @@ class CodeTerminator::Html
    end
 
    def remove_empty_text (reader)
-     reader.at('html').children.each do |child|
+     if !reader.at('head').nil?
+     reader.at('head').children.each do |child|
        if !child.text.nil?
-         child.remove if child.content.to_s.squish.empty?
+         child.remove if child.content.to_s.squish.empty? && child.class == Nokogiri::XML::Text
        end
         check_children(child) if child.children.any?
      end
+    end
+      if !reader.at('body').nil?
+     reader.at('body').children.each do |child|
+       if !child.text.nil?
+         child.remove if child.content.to_s.squish.empty? && child.class == Nokogiri::XML::Text
+       end
+        check_children(child) if child.children.any?
+     end
+    end
      reader
    end
 
