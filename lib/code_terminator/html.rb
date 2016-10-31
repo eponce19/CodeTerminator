@@ -270,7 +270,7 @@ class CodeTerminator::Html
          if !e[:content].nil?
            if code.css(e[:parent]).count < 2
              if code.css(e[:parent]).text != e[:content]
-               html_errors << new_error(element: e, type: 330, description: "The text inside #{e[:parent]} should be #{e[:content]}.")
+               html_errors << new_error(element: e, type: 330, description: "The text inside **<#{e[:parent]}>** should be #{e[:content]}.")
              end
            else
              exist = false
@@ -282,7 +282,7 @@ class CodeTerminator::Html
                #end
              end
              if !exist
-              html_errors << new_error(element: e, type: 330, description: "The text inside #{e[:parent]} should be #{e[:content]}.")
+              html_errors << new_error(element: e, type: 330, description: "The text inside **<#{e[:parent]}>** should be #{e[:content]}.")
              end
            end
         end
@@ -296,11 +296,11 @@ class CodeTerminator::Html
          if !e[:attribute].nil?
           #  Check the tag's attributes
            if tag.attribute(e[:attribute]).nil?
-             html_errors << new_error(element: e, type: 334, description: "#{e[:tag]} should have an attribute named #{e[:attribute]}.")
+             html_errors << new_error(element: e, type: 334, description: "**<#{e[:tag]}>** should have an attribute named #{e[:attribute]}.")
            else
              if tag.attribute(e[:attribute]).value != e[:value]
                  exist_in_body << false
-                 error333 = new_error(element: e, type: 333, description: "Make sure that the attribute #{e[:attribute]} in #{e[:tag]} has the value #{e[:value]}.")
+                 error333 = new_error(element: e, type: 333, description: "Make sure that the attribute #{e[:attribute]} in **<#{e[:tag]}>** has the value #{e[:value]}.")
              else
                exist_in_body << true
              end
@@ -313,7 +313,7 @@ class CodeTerminator::Html
 
          if tag.count < 2 && !tag.first.nil?
            if tag.first.parent.name != e[:parent]
-             html_errors << new_error(element: e, type: 440, description: "Remember to add the #{e[:tag]} tag inside #{e[:parent]}.")
+             html_errors << new_error(element: e, type: 440, description: "Remember to add the **<#{e[:tag]}>** tag inside **<#{e[:parent]}>**.")
            end
          else
           exist_in_parent = false
@@ -323,7 +323,7 @@ class CodeTerminator::Html
               end
             end
             if !exist_in_parent
-              html_errors << new_error(element: e, type: 440, description: "Remember to add the #{e[:tag]} tag inside #{e[:parent]}.")
+              html_errors << new_error(element: e, type: 440, description: "Remember to add the **<#{e[:tag]}>** tag inside **<#{e[:parent]}>**.")
             end
          end
         end
@@ -332,7 +332,7 @@ class CodeTerminator::Html
        else
          #  Check that the tag is present
           if code.at_css(e[:tag]).nil?
-            html_errors << new_error(element: e, type: 404, description:  "Remember to add the #{e[:tag]} tag.")
+            html_errors << new_error(element: e, type: 404, description:  "Remember to add the **<#{e[:tag]}>** tag.")
           end
        end
 
