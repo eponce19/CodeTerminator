@@ -218,18 +218,18 @@ class CodeTerminator::Css
            if e[:value]==""
              property = e[:property] + ": "
              if parser_property.empty? { |s| s.include?(property) }
-               css_errors << new_error(element: e, type: 111, description: "Make sure the property #{property} is in the selector #{item}.")
+               css_errors << new_error(element: e, type: 111, description: "Make sure the property _#{property}_ is in the selector **#{item}**.")
              end
            else
              property = e[:property] + ": " + e[:value]
              if !parser_property.include?(property)
-               css_errors << new_error(element: e, type: 111, description: "Make sure the property #{property} is in the selector #{item}.")
+               css_errors << new_error(element: e, type: 111, description: "Make sure the property _#{property}_ is in the selector **#{item}**.")
              end
            end
 
          else
            node = Hash.new
-           css_errors << new_error(element: e, type: 101, description: "Add #{property} inside #{item}.")
+           css_errors << new_error(element: e, type: 101, description: "Add _#{property}_ inside **#{item}**.")
          end
        end
      end
