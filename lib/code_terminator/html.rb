@@ -269,9 +269,30 @@ class CodeTerminator::Html
         #  Check the text
          if !e[:content].nil?
            if code.css(e[:parent]).count < 2
-             if code.css(e[:parent]).text != e[:content]
-               html_errors << new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}.")
+
+             #new code
+             if code.css(e[:parent]).class == Nokogiri::XML::NodeSet
+               text_found = false
+               error330 = nil
+               code.css(e[:parent]).children.each do |node_child|
+                 if node_child.class != Nokogiri::XML::Element
+                   #embebed code
+                   #if code.css(e[:parent]).text != e[:content]
+                   if node_child.text.strip != e[:content].strip
+                     error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}.")
+                   else
+                     text_found = true
+                   end
+                   #end embebed code
+                 end
+               end
+               if !text_found && !error330.nil?
+                 html_errors << error330
+                 error330 = nil
+               end
              end
+             #new code
+
            else
              exist = false
              code.css(e[:parent]).each do |code_css|
@@ -352,6 +373,16 @@ class CodeTerminator::Html
 
    def add_children(parent)
      parent.children.each do |child|
+       p "children: " + child
+       p "children count = "+ child.children.count.to_s
+       if child.children.count > 1
+         clone = child.clone
+         if clone.class == Nokogiri::XML::Element
+           clone.children.remove
+           p "clone text " + clone
+         end
+       end
+
        if child.attribute_nodes.empty?
           node = Hash.new
           node[:parent] = parent.name
@@ -361,7 +392,7 @@ class CodeTerminator::Html
           else
             node[:tag] = child.name
           end
-          node[:content] = child.text if !child.text.nil?
+          node[:content] = child.text if !child.text.nil? and child.class!=Nokogiri::XML::Element
           @elements << node
        else
          child.attribute_nodes.each do |element_attribute|
@@ -380,6 +411,7 @@ class CodeTerminator::Html
            @elements << node
          end
        end
+
        add_children(child) if child.children.any?
      end
    end
