@@ -373,15 +373,6 @@ class CodeTerminator::Html
 
    def add_children(parent)
      parent.children.each do |child|
-       p "children: " + child
-       p "children count = "+ child.children.count.to_s
-       if child.children.count > 1
-         clone = child.clone
-         if clone.class == Nokogiri::XML::Element
-           clone.children.remove
-           p "clone text " + clone
-         end
-       end
 
        if child.attribute_nodes.empty?
           node = Hash.new
