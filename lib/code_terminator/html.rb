@@ -269,23 +269,33 @@ class CodeTerminator::Html
         #  Check the text
          if !e[:content].nil?
            if code.css(e[:parent]).count < 2
-
              #new code
              if code.css(e[:parent]).class == Nokogiri::XML::NodeSet
                text_found = false
                error330 = nil
-               code.css(e[:parent]).children.each do |node_child|
-                 if node_child.class != Nokogiri::XML::Element
-                   #embebed code
-                   #if code.css(e[:parent]).text != e[:content]
-                   if node_child.text.strip != e[:content].strip
-                     error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}.")
-                   else
-                     text_found = true
+               if code.css(e[:parent]).children.any?
+                   code.css(e[:parent]).children.each do |node_child|
+
+                     if node_child.class != Nokogiri::XML::Element
+                       #embebed code
+                       #if code.css(e[:parent]).text != e[:content]
+                       if node_child.text.strip != e[:content].strip
+                         error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}.")
+                       else
+                         text_found = true
+                       end
+                       #end embebed code
+                     end
                    end
-                   #end embebed code
-                 end
-               end
+                else
+                  if code.css(e[:parent]).text.strip != e[:content].strip
+                  p "text of node: " + code.css(e[:parent]).text
+                    error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}.")
+                  else
+                    text_found = true
+                  end
+                end
+
                if !text_found && !error330.nil?
                  html_errors << error330
                  error330 = nil
@@ -297,6 +307,7 @@ class CodeTerminator::Html
              exist = false
              code.css(e[:parent]).each do |code_css|
                #if code_css.at_css(e[:tag]).parent.name == e[:parent]
+               p "text content: " + code_css.text
                  if code_css.text == e[:content]
                    exist = true
                  end
