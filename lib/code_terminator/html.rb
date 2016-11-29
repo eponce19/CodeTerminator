@@ -48,49 +48,72 @@ class CodeTerminator::Html
 
    def get_elements(source)
      @elements = Array.new
+     #How to read if is an url
      if @source_type == "url"
        reader = Nokogiri::HTML(open(source).read)
      else
        reader = Nokogiri::HTML(File.open(source))
      end
+     #remove empty spaces from reader
      reader = remove_empty_text(reader)
+     node = Hash.new
+     node[:parent] = ""
+     node[:tag] = "html"
+     @elements << node
+
+     #search elements from body section
        if !reader.at('body').nil?
+         node = Hash.new
+         node[:parent] = "html"
+         node[:tag] = "body"
+         @elements << node
+
          reader.at('body').attribute_nodes.each do |element_attribute|
+           node = Hash.new
            node[:parent] = "html"
            node[:tag] = "body"
            node[:attribute] = element_attribute.name if !element_attribute.name.nil?
            node[:value] = element_attribute.value if !element_attribute.value.nil?
            @elements << node
          end
-       end
-
-     if !reader.at('head').nil?
-     reader.at('head').children.each do |child|
-      if child.attribute_nodes.empty?
-        node = Hash.new
-        node[:parent] = "head"
-        node[:tag] = child.name
-        node[:content] = child.text if !child.text.nil?
-        @elements << node
-      else
-        child.attribute_nodes.each do |element_attribute|
-          node = Hash.new
-          node[:parent] = "head"
-          if child.name == "#cdata-section"
-            node[:tag] = "text"
-          else
-            node[:tag] = child.name
-          end
-          # node[:tag] = ( ? "text", child.name)
-          node[:content] = child.text if !child.text.nil?
-          node[:attribute] = element_attribute.name if !element_attribute.name.nil?
-          node[:value] = element_attribute.value if !element_attribute.value.nil?
-          @elements << node
-        end
       end
-      add_children(child) if child.children.any?
+      #end search
+
+      #search elements from head section
+     if !reader.at('head').nil?
+       node = Hash.new
+       node[:parent] = "html"
+       node[:tag] = "head"
+       @elements << node
+       reader.at('head').children.each do |child|
+         if child.attribute_nodes.empty?
+           node = Hash.new
+           node[:parent] = "head"
+           node[:tag] = child.name
+           node[:content] = child.text if !child.text.nil?
+           @elements << node
+         else
+           child.attribute_nodes.each do |element_attribute|
+             node = Hash.new
+             node[:parent] = "head"
+             if child.name == "#cdata-section"
+               node[:tag] = "text"
+             else
+               node[:tag] = child.name
+             end
+             # node[:tag] = ( ? "text", child.name)
+             node[:content] = child.text if !child.text.nil?
+             node[:attribute] = element_attribute.name if !element_attribute.name.nil?
+             node[:value] = element_attribute.value if !element_attribute.value.nil?
+             @elements << node
+           end
+         end
+         add_children(child) if child.children.any?
+       end
     end
-    end
+    #end search elements
+
+    #search elements inside body (children)
     if !reader.at('body').nil?
       reader.at('body').children.each do |child|
         if child.attribute_nodes.empty?
@@ -112,6 +135,8 @@ class CodeTerminator::Html
         add_children(child) if child.children.any?
       end
      end
+     #end search elements
+
      @elements
    end
 
