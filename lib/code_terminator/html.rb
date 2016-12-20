@@ -90,7 +90,7 @@ class CodeTerminator::Html
            node = Hash.new
            node[:parent] = "head"
            node[:tag] = child.name
-           node[:content] = child.text if !child.text.nil?
+           node[:content] = child.text if !child.text.nil? or child.comment?
            @elements << node
          else
            child.attribute_nodes.each do |element_attribute|
@@ -120,7 +120,7 @@ class CodeTerminator::Html
           node = Hash.new
           node[:parent] = "body"
           node[:tag] = child.name
-          node[:content] = child.text if child.text?
+          node[:content] = child.text if child.text? or child.comment?
           @elements << node
         else
           child.attribute_nodes.each do |element_attribute|
@@ -249,6 +249,8 @@ class CodeTerminator::Html
          text << " in "  + child[:parent]  if !child[:parent].nil?
          text << " with an attribute '" + child[:attribute] + "' " if !child[:attribute].nil?
          text << " with value '" + child[:value] + "' " if !child[:value].nil?
+       elsif child[:tag] == "comment"
+        text << " In " + child[:tag]+ " add the text '" + child[:content]  + "' "  if !child[:content].nil?
        else
          text << " In " + child[:parent]+ " add the text '" + child[:content]  + "' "  if !child[:content].nil?
        end
@@ -289,7 +291,7 @@ class CodeTerminator::Html
 
        item = e[:tag]
 
-       if item=="text"
+       if item == "text" or item == "comment"
 
         #  Check the text
          if !e[:content].nil?
@@ -305,7 +307,11 @@ class CodeTerminator::Html
                        #embebed code
                        #if code.css(e[:parent]).text != e[:content]
                        if node_child.text.strip != e[:content].strip
-                         error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
+                         if item == "comment"
+                           error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
+                         else
+                           error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
+                         end
                        else
                          text_found = true
                        end
@@ -315,7 +321,11 @@ class CodeTerminator::Html
                 else
                   if code.css(e[:parent]).text.strip != e[:content].strip
                   p "text of node: " + code.css(e[:parent]).text
-                    error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
+                    if item == "comment"
+                      error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
+                    else
+                      error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
+                    end
                   else
                     text_found = true
                   end
