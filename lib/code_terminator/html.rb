@@ -289,7 +289,7 @@ class CodeTerminator::Html
 
      elements.each do |e|
 
-      #  p item = e[:tag]
+      p item = e[:tag]
 
        if item == "text" or item == "comment"
 
