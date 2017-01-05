@@ -289,7 +289,7 @@ class CodeTerminator::Html
 
      elements.each do |e|
 
-       item = e[:tag]
+      #  p item = e[:tag]
 
        if item == "text" or item == "comment"
 
@@ -298,15 +298,28 @@ class CodeTerminator::Html
            if code.css(e[:parent]).count < 2
              if code.css(e[:parent]).class == Nokogiri::XML::NodeSet
                text_found = false
+               comment_found = false if item == "comment"
                error330 = nil
                if code.css(e[:parent]).children.any?
                  code.css(e[:parent]).children.each do |node_child|
+
+                  #  p "node child " + node_child.class.to_s
+                  #  p "item " + item
+
+                     if item == "comment" && node_child.class == Nokogiri::XML::Comment
+                       comment_found = true
+                     end
+
                    if node_child.class != Nokogiri::XML::Element
                      #embebed code
                      #if code.css(e[:parent]).text != e[:content]
+
                      if node_child.text.strip != e[:content].strip
                        if item == "comment"
-                         error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
+                         #  if comment isn't present in the code, mark add tag
+                         if e[:content].strip != ""
+                           error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
+                         end
                        else
                          error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
                        end
@@ -316,10 +329,19 @@ class CodeTerminator::Html
                      #end embebed code
                    end
                  end
+
+                 if !(defined? comment_found).nil?
+                   if !comment_found
+                     html_errors << new_error(element: e, type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag")
+                   end
+                 end
                  #end each
                 else
+                  if item == "comment"
+                    html_errors << new_error(element: e, type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag")
+                  end
                   if code.css(e[:parent]).text.strip != e[:content].strip
-                  p "text of node: " + code.css(e[:parent]).text
+                  # p "text of node: " + code.css(e[:parent]).text
                     if item == "comment"
                       error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
                     else
@@ -330,6 +352,9 @@ class CodeTerminator::Html
                   end
                 end
                 #end if parent has children
+                # if !comment_found
+                #   html_errors << new_error(element: e, type: 404, description:  "Remember to add the `comment` tag")
+                # end
 
                if !text_found && !error330.nil?
                  html_errors << error330
@@ -352,6 +377,7 @@ class CodeTerminator::Html
              end
            end
            #end if parent < 2
+
          end
          #end if content is null
 
@@ -370,7 +396,7 @@ class CodeTerminator::Html
              if tag.attribute(e[:attribute]).value != e[:value]
                  exist_in_body << false
                 #  p "type " + e[:tag] + " with attribute " + e[:attribute] + " value " + e[:value]
-                #check if the img have attribute src and value is null, the user can write whatever image he wants
+                # Check if the img have attribute src and value is null, the user can write whatever image he wants
                  if !(e[:tag] == "img" && e[:attribute] == "src" && e[:value] == "")
                    error333 = new_error(element: e, type: 333, description: "Make sure that the attribute #{e[:attribute]} in `<#{e[:tag]}>` has the value #{e[:value]}")
                  end
