@@ -298,38 +298,53 @@ class CodeTerminator::Html
            if code.css(e[:parent]).count < 2
              if code.css(e[:parent]).class == Nokogiri::XML::NodeSet
                text_found = false
+               @comment_found = false if item == "comment"
                error330 = nil
                if code.css(e[:parent]).children.any?
+
                  code.css(e[:parent]).children.each do |node_child|
-                   if node_child.class != Nokogiri::XML::Element
-                     #embebed code
-                     #if code.css(e[:parent]).text != e[:content]
-                     if node_child.text.strip != e[:content].strip
-                       if item == "comment"
+
+                   if node_child.class == Nokogiri::XML::Comment
+                     if e[:content].strip != ""
+                       if node_child.text.strip! != e[:content].strip!
                          error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
-                       else
-                         error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
                        end
+                     end
+                     @comment_found = true
+                   end
+
+                   if node_child.class == Nokogiri::XML::Text
+                     if node_child.text.strip != e[:content].strip
+                       error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
                      else
                        text_found = true
                      end
-                     #end embebed code
                    end
+
                  end
                  #end each
                 else
-                  if code.css(e[:parent]).text.strip != e[:content].strip
-                  p "text of node: " + code.css(e[:parent]).text
-                    if item == "comment"
-                      error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
+
+                    if code.css(e[:parent]).text.strip != e[:content].strip
+                      #validate if comment exist and has the expected content
+                      if item == "comment"
+                        error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
+                        @comment_found = true
+                      else
+                        error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
+                      end
                     else
-                      error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
+                      text_found = true
                     end
-                  else
-                    text_found = true
-                  end
+
                 end
                 #end if parent has children
+
+                #if comment not found, throw error
+                if !(defined? @comment_found).nil?
+                  html_errors << new_error(element: e, type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag") if !@comment_found
+                  remove_instance_variable(:@comment_found)
+                end
 
                if !text_found && !error330.nil?
                  html_errors << error330
@@ -340,12 +355,9 @@ class CodeTerminator::Html
            else
              exist = false
              code.css(e[:parent]).each do |code_css|
-               #if code_css.at_css(e[:tag]).parent.name == e[:parent]
-               p "text content: " + code_css.text
-                 if code_css.text == e[:content]
-                   exist = true
-                 end
-               #end
+               if code_css.text == e[:content]
+                 exist = true
+               end
              end
              if !exist
               html_errors << new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
