@@ -74,6 +74,7 @@ class CodeTerminator::Html
            node[:tag] = "body"
            node[:attribute] = element_attribute.name if !element_attribute.name.nil?
            node[:value] = element_attribute.value if !element_attribute.value.nil?
+           node[:pointer] = element_attribute.pointer_id
            @elements << node
          end
       end
@@ -91,6 +92,7 @@ class CodeTerminator::Html
            node[:parent] = "head"
            node[:tag] = child.name
            node[:content] = child.text if !child.text.nil? or child.comment?
+           node[:pointer] = child.pointer_id
            @elements << node
          else
            child.attribute_nodes.each do |element_attribute|
@@ -105,6 +107,7 @@ class CodeTerminator::Html
              node[:content] = child.text if !child.text.nil?
              node[:attribute] = element_attribute.name if !element_attribute.name.nil?
              node[:value] = element_attribute.value if !element_attribute.value.nil?
+             node[:pointer] = element_attribute.pointer_id
              @elements << node
            end
          end
@@ -121,6 +124,7 @@ class CodeTerminator::Html
           node[:parent] = "body"
           node[:tag] = child.name
           node[:content] = child.text if child.text? or child.comment?
+          node[:pointer] = child.pointer_id
           @elements << node
         else
           child.attribute_nodes.each do |element_attribute|
@@ -129,6 +133,7 @@ class CodeTerminator::Html
             node[:tag] = child.name
             node[:attribute] = element_attribute.name if !element_attribute.name.nil?
             node[:value] = element_attribute.value if !element_attribute.value.nil?
+            node[:pointer] = element_attribute.pointer_id
             @elements << node
           end
         end
@@ -283,6 +288,8 @@ class CodeTerminator::Html
 
      elements = get_elements(source)
 
+     css_code_checked = Array.new
+
      exist_in_body = Array.new
 
      error333 = nil
@@ -313,7 +320,7 @@ class CodeTerminator::Html
                      @comment_found = true
                    end
 
-                   if node_child.class == Nokogiri::XML::Text
+                   if node_child.class == Nokogiri::XML::Text && item != "comment"
                      if node_child.text.strip != e[:content].strip
                        error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
                      else
@@ -342,7 +349,7 @@ class CodeTerminator::Html
 
                 #if comment not found, throw error
                 if !(defined? @comment_found).nil?
-                  html_errors << new_error(element: e, type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag") if !@comment_found
+                  html_errors << new_error(element: e, type: 404, description:  "Remember to add the comment tag") if !@comment_found
                   remove_instance_variable(:@comment_found)
                 end
 
@@ -372,12 +379,26 @@ class CodeTerminator::Html
 
        if code.css(e[:tag]).length > 0
 
+
         code.css(e[:tag]).each do |tag|
+
+          p "code css + " + e[:tag].to_s
+          p "pointer element " + e[:pointer].to_s
+
+          p e_check = css_code_checked.select {|element| element[:target_pointer].to_s == e[:pointer].to_s }
+          p e_check2 = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s }
+          if e_check.count < 1 and e_check2.count < 1
+
+          element_checked = Hash.new
+          element_checked[:pointer] = tag.pointer_id
+          element_checked[:tag] = e[:tag]
+          element_checked[:target_pointer]= e[:pointer]
+
 
          if !e[:attribute].nil?
           #  Check the tag's attributes
            if tag.attribute(e[:attribute]).nil?
-             html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]}")
+             p html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]}")
            else
              if tag.attribute(e[:attribute]).value != e[:value]
                  exist_in_body << false
@@ -387,10 +408,14 @@ class CodeTerminator::Html
                    error333 = new_error(element: e, type: 333, description: "Make sure that the attribute #{e[:attribute]} in `<#{e[:tag]}>` has the value #{e[:value]}")
                  end
              else
+               p "add code_checked"
+               css_code_checked << element_checked
                exist_in_body << true
              end
 
            end
+
+          end #if element checked
          end
 
         #  Check that tags exist within parent tags
@@ -429,6 +454,7 @@ class CodeTerminator::Html
       end
 
      end
+     p css_code_checked
 
      html_errors
    end
