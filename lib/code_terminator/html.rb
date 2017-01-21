@@ -93,6 +93,8 @@ class CodeTerminator::Html
            node[:tag] = child.name
            node[:content] = child.text if !child.text.nil? or child.comment?
            node[:pointer] = child.pointer_id
+           node[:parent_pointer] = child.parent.pointer_id
+
            @elements << node
          else
            child.attribute_nodes.each do |element_attribute|
@@ -108,6 +110,7 @@ class CodeTerminator::Html
              node[:attribute] = element_attribute.name if !element_attribute.name.nil?
              node[:value] = element_attribute.value if !element_attribute.value.nil?
              node[:pointer] = element_attribute.pointer_id
+             node[:parent_pointer] = child.pointer_id
              @elements << node
            end
          end
@@ -125,6 +128,7 @@ class CodeTerminator::Html
           node[:tag] = child.name
           node[:content] = child.text if child.text? or child.comment?
           node[:pointer] = child.pointer_id
+          node[:parent_pointer] = child.parent.pointer_id
           @elements << node
         else
           child.attribute_nodes.each do |element_attribute|
@@ -134,6 +138,7 @@ class CodeTerminator::Html
             node[:attribute] = element_attribute.name if !element_attribute.name.nil?
             node[:value] = element_attribute.value if !element_attribute.value.nil?
             node[:pointer] = element_attribute.pointer_id
+            node[:parent_pointer] = child.pointer_id
             @elements << node
           end
         end
@@ -376,7 +381,6 @@ class CodeTerminator::Html
 
        else
        #item class is different to text or comment
-
        if code.css(e[:tag]).length > 0
 
 
@@ -387,18 +391,20 @@ class CodeTerminator::Html
 
           p e_check = css_code_checked.select {|element| element[:target_pointer].to_s == e[:pointer].to_s }
           p e_check2 = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s }
-          if e_check.count < 1 and e_check2.count < 1
+          p e_check3 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
+          if e_check.count < 1 and e_check2.count < 1 and e_check3.count < 1
 
           element_checked = Hash.new
           element_checked[:pointer] = tag.pointer_id
           element_checked[:tag] = e[:tag]
-          element_checked[:target_pointer]= e[:pointer]
+          element_checked[:target_pointer] = e[:pointer]
+          element_checked[:target_parent_pointer] = e[:parent_pointer]
 
 
          if !e[:attribute].nil?
           #  Check the tag's attributes
            if tag.attribute(e[:attribute]).nil?
-             p html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]}")
+             html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]}")
            else
              if tag.attribute(e[:attribute]).value != e[:value]
                  exist_in_body << false
@@ -420,8 +426,11 @@ class CodeTerminator::Html
 
         #  Check that tags exist within parent tags
         if tag.first.respond_to? :parent
+          p  "check if exists in parent tags"
+          p e_check4 = css_code_checked.select {|element| element[:pointer].to_s == e[:pointer].to_s }
+          p e_check5 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
 
-         if tag.count < 2 && !tag.first.nil?
+         if (tag.count < 2 && !tag.first.nil?) or (e_check4.count < 1 && e_check5.count < 1)
            if tag.first.parent.name != e[:parent]
              html_errors << new_error(element: e, type: 440, description: "Remember to add the `<#{e[:tag]}>` tag inside `<#{e[:parent]}>`")
            end
@@ -441,7 +450,10 @@ class CodeTerminator::Html
 
        else
          #  Check that the tag is present
-          if code.at_css(e[:tag]).nil?
+         p "check if exists in parent"
+         e_check4 = css_code_checked.select {|element| element[:pointer].to_s == e[:pointer].to_s }
+         e_check5 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
+          if code.at_css(e[:tag]).nil? or e_check4.count < 1 and e_check5.count < 1
             html_errors << new_error(element: e, type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag")
           end
        end
@@ -474,6 +486,8 @@ class CodeTerminator::Html
             node[:tag] = child.name
           end
           node[:content] = child.text if !child.text.nil? and child.class!=Nokogiri::XML::Element
+          node[:pointer] = child.pointer_id
+          node[:parent_pointer] = child.parent.pointer_id
           @elements << node
        else
          child.attribute_nodes.each do |element_attribute|
@@ -489,6 +503,8 @@ class CodeTerminator::Html
            end
            node[:attribute] = element_attribute.name if !element_attribute.name.nil?
            node[:value] = element_attribute.value if !element_attribute.value.nil?
+           node[:pointer] = element_attribute.pointer_id
+           node[:parent_pointer] = child.pointer_id
            @elements << node
          end
        end
