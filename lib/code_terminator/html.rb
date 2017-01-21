@@ -287,7 +287,8 @@ class CodeTerminator::Html
    #   code: (String)
 
    def match(source, code)
-     html_errors = Array.new
+     @html_errors = Array.new
+     html_errors = @html_errors
 
      code = Nokogiri::HTML(code)
 
@@ -309,59 +310,10 @@ class CodeTerminator::Html
          if !e[:content].nil?
            if code.css(e[:parent]).count < 2
              if code.css(e[:parent]).class == Nokogiri::XML::NodeSet
-               text_found = false
-               @comment_found = false if item == "comment"
-               error330 = nil
-               if code.css(e[:parent]).children.any?
 
-                 code.css(e[:parent]).children.each do |node_child|
+               #look_comment_or_text variables
+               look_comment_or_text(code,e)
 
-                   if node_child.class == Nokogiri::XML::Comment
-                     if e[:content].strip != ""
-                       if node_child.text.strip! != e[:content].strip!
-                         error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
-                       end
-                     end
-                     @comment_found = true
-                   end
-
-                   if node_child.class == Nokogiri::XML::Text && item != "comment"
-                     if node_child.text.strip != e[:content].strip
-                       error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
-                     else
-                       text_found = true
-                     end
-                   end
-
-                 end
-                 #end each
-                else
-
-                    if code.css(e[:parent]).text.strip != e[:content].strip
-                      #validate if comment exist and has the expected content
-                      if item == "comment"
-                        error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
-                        @comment_found = true
-                      else
-                        error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
-                      end
-                    else
-                      text_found = true
-                    end
-
-                end
-                #end if parent has children
-
-                #if comment not found, throw error
-                if !(defined? @comment_found).nil?
-                  html_errors << new_error(element: e, type: 404, description:  "Remember to add the comment tag") if !@comment_found
-                  remove_instance_variable(:@comment_found)
-                end
-
-               if !text_found && !error330.nil?
-                 html_errors << error330
-                 error330 = nil
-               end
              end
              #end if parent is nodeset
            else
@@ -552,6 +504,71 @@ class CodeTerminator::Html
      node[:description] =  description
      node
    end
+
+
+#methods of match
+   def look_comment_or_text(code,e)
+     error330 = nil
+     text_found = false
+     @comment_found = false if e[:tag] == "comment"
+
+     #look for comments or text in code
+     #code, e
+     if code.css(e[:parent]).children.any?
+      #look for comments and text in children of body
+      # code, e
+      #save
+      #return
+      code.css(e[:parent]).children.each do |node_child|
+        #if class of the node is a comment, look in the code
+        # @e, node_child
+        #save error330
+        #return true (flag)
+        if node_child.class == Nokogiri::XML::Comment
+          error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}") if e[:content].strip != "" && node_child.text.strip! != e[:content].strip!
+          @comment_found = true
+        end
+
+        #if class of node is text and element is not a comment
+        #@e, node_child
+        #save a error330, text_found
+        #return true (flag)
+        if node_child.class == Nokogiri::XML::Text && item != "comment"
+          node_child.text.strip != e[:content].strip ? error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}") : text_found = true
+        end
+      end #each
+
+      else
+         #validate if comment exist and has the expected content in body
+         #code, @e
+         #save @comment_found, text_found
+         if code.css(e[:parent]).text.strip != e[:content].strip
+           if e[:tag] == "comment"
+             error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
+             @comment_found = true
+           else
+             error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
+           end
+          else
+            text_found = true
+          end
+       end #end if parent has children
+
+       #throw errors of comment or text
+       #if comment not found, throw error
+        if !(defined? @comment_found).nil?
+          @html_errors << new_error(element: e, type: 404, description:  "Remember to add the comment tag")
+          remove_instance_variable(:@comment_found) if !@comment_found
+        end
+
+       if !text_found && !error330.nil?
+         @html_errors << error330
+         error330 = nil
+       end
+       #end throw errors
+
+   end #end look_comment_or_text
+
 
   #end
 
