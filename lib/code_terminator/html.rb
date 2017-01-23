@@ -555,7 +555,7 @@ class CodeTerminator::Html
        #end throw errors
    end #end look_comment_or_text
 
-   def look_parent_text
+   def look_parent_text(code,e)
      exist = false
      #look for text in parent, if found check flag true
      code.css(e[:parent]).each do |code_css|

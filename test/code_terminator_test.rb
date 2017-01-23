@@ -176,12 +176,46 @@ class CodeTerminatorTest < Minitest::Test
     assert_equal errors.empty? , true
   end
 
-  def test_html_check_get_children_in_parent_exist
+  def test_html_check_get_empty_children_in_parent_exist_error
     ct = CodeTerminator::Html.new
-    p "B test if parent dont contains the children in code, throw error"
-    p errors = ct.match("exercises/html/check_div_children_exist.html","<html><head></head><body><div></div></body></html>")
+    p "B test if parent dont contains the empty children in code, throw error"
+    p errors = ct.match("exercises/html/check_get_empty_children_in_parent.html","<html><head></head><body><div></div></body></html>")
     assert_equal errors.empty? , false
   end
 
+  def test_html_check_get_children_in_parent_exist_error
+    ct = CodeTerminator::Html.new
+    p "C test if parent contains the children in code"
+    p errors = ct.match("exercises/html/check_get_children_in_parent.html","<html><head></head><body><div></div></body></html>")
+    assert_equal errors.empty? , false
+  end
+
+  def test_html_check_div_same_empty_children_exist
+    ct = CodeTerminator::Html.new
+    p "21 test if div contains empty child with same tag"
+    p errors = ct.match("exercises/html/check_div_same_empty_children_exist.html","<html><head></head><body><div><h1>2017</h1><h2>2018</h2><h2>2019</h2></div></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_div_same_empty_children_exist_error
+    ct = CodeTerminator::Html.new
+    p "22 test if div dont contains empty child with same tag"
+    p errors = ct.match("exercises/html/check_div_same_empty_children_exist.html","<html><head></head><body><div><h1>2017</h1><h2>2018</h2></div></body></html>")
+    assert_equal errors.empty? , false
+  end
+
+  def test_html_check_div_same_children_exist
+    ct = CodeTerminator::Html.new
+    p "23 test if div contains child with same tag"
+    p errors = ct.match("exercises/html/check_div_same_children_exist.html","<html><head></head><body><div><h1>2017</h1><h2>2018</h2><h2>2019</h2></div></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_div_same_empty_children_exist_error
+    ct = CodeTerminator::Html.new
+    p "24 test if div dont contains child with same tag"
+    p errors = ct.match("exercises/html/check_div_same_children_exist.html","<html><head></head><body><div><h1>2017</h1><h2>2018</h2></div></body></html>")
+    assert_equal errors.empty? , false
+  end
 
 end
