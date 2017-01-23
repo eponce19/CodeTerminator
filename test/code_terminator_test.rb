@@ -71,4 +71,67 @@ class CodeTerminatorTest < Minitest::Test
     assert_equal errors.empty? , false
   end
 
+  def test_html_check_text_empty_children
+    ct = CodeTerminator::Html.new
+    p "7 test if text in empty children can be different in code"
+    p errors = ct.match("exercises/html/check_text_empty_children.html","<html><head></head><body>This is text in body<h1>This is text in children</h1></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_text_empty_parent
+    ct = CodeTerminator::Html.new
+    p "8 test if text in empty parent can be different in code"
+    p errors = ct.match("exercises/html/check_text_empty_children.html","<html><head></head><body>This is text in body<h1>This is text in child</h1></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_text_exists_children
+    ct = CodeTerminator::Html.new
+    p "9 test if text in children is the same in code"
+    p errors = ct.match("exercises/html/check_text_exists_children.html","<html><head></head><body>This is text in body<h1>This is text in child</h1></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_text_exists_children_error
+    ct = CodeTerminator::Html.new
+    p "10 test if text in children is different in code, throw error"
+    p errors = ct.match("exercises/html/check_text_exists_children.html","<html><head></head><body>This is text in body<h1>This is a title</h1></body></html>")
+    assert_equal errors.empty? , false
+  end
+
+  def test_html_check_text_exists_parent
+    ct = CodeTerminator::Html.new
+    p "11 test if text in parent is the same in code"
+    p errors = ct.match("exercises/html/check_text_exists_parent.html","<html><head></head><body>This is text in body<h1>This is text in child</h1></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_text_exists_parent_error
+    ct = CodeTerminator::Html.new
+    p "12 test if text in parent is different in code, throw error"
+    p errors = ct.match("exercises/html/check_text_exists_parent.html","<html><head></head><body>This is a title<h1>This is a text in child</h1></body></html>")
+    assert_equal errors.empty? , false
+  end
+
+  def test_html_check_text_empty_children
+    ct = CodeTerminator::Html.new
+    p "13 test if text in children can be different in code"
+    p errors = ct.match("exercises/html/check_text_empty_children.html","<html><head></head><body>This is text in body<h1>This is MY text in child</h1></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_text_empty_children_error
+    ct = CodeTerminator::Html.new
+    p "14 test if tag dont exist even the text is empty in children, throw error"
+    p errors = ct.match("exercises/html/check_text_empty_children.html","<html><head></head><body>This is text in body</body></html>")
+    assert_equal errors.empty? , false
+  end
+
+  def test_html_check_text_empty_parent
+    ct = CodeTerminator::Html.new
+    p "15 test if text in parent can be different in code"
+    p errors = ct.match("exercises/html/check_text_empty_parent.html","<html><head></head><body>This is MY text in body<h1>This is text in child</h1></body></html>")
+    assert_equal errors.empty? , true
+  end
+
 end

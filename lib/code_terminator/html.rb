@@ -521,7 +521,7 @@ class CodeTerminator::Html
         #@e, node_child
         #save a error330, text_found
         #return true (flag)
-        if node_child.class == Nokogiri::XML::Text && item != "comment"
+        if node_child.class == Nokogiri::XML::Text && e[:content] != "comment"
           node_child.text.strip != e[:content].strip ? error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}") : text_found = true
         end
       end #each
