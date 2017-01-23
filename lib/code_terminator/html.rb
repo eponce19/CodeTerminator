@@ -230,11 +230,11 @@ class CodeTerminator::Html
    def print_elements(elements)
      text = ""
      elements.each do |child|
-       text << "parent = " + child[:parent] + "<br>" if !child[:parent].nil?
-       text << "tag = " + child[:tag] + "<br>" if !child[:tag].nil?
-       text << "attribute = " + child[:attribute] + "<br>" if !child[:attribute].nil?
-       text << "value = " + child[:value] + "<br>" if !child[:value].nil?
-       text << "content = " + child[:content] + "<br>" if !child[:content].nil?
+       text << "parent = " + child[:parent] + "<br>" if child[:parent]
+       text << "tag = " + child[:tag] + "<br>" if child[:tag]
+       text << "attribute = " + child[:attribute] + "<br>" if child[:attribute]
+       text << "value = " + child[:value] + "<br>" if child[:value]
+       text << "content = " + child[:content] + "<br>" if child[:content]
        text << "<hr>"
      end
      text
@@ -305,29 +305,17 @@ class CodeTerminator::Html
        item = e[:tag]
 
        if item == "text" or item == "comment"
-
         #  Check the text
-         if !e[:content].nil?
+         if e[:content]
            if code.css(e[:parent]).count < 2
              if code.css(e[:parent]).class == Nokogiri::XML::NodeSet
-
-               #look_comment_or_text variables
+               #look for children elements with texts or comments
                look_comment_or_text(code,e)
-
              end
-             #end if parent is nodeset
            else
-             exist = false
-             code.css(e[:parent]).each do |code_css|
-               if code_css.text == e[:content]
-                 exist = true
-               end
-             end
-             if !exist
-              html_errors << new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
-             end
+             #check if parent tag of the user code has text apart from the children tags
+             look_parent_text(code,e)
            end
-           #end if parent < 2
          end
          #end if content is null
 
@@ -566,8 +554,20 @@ class CodeTerminator::Html
          error330 = nil
        end
        #end throw errors
-
    end #end look_comment_or_text
+
+   def look_parent_text
+     exist = false
+     #look for text in parent, if found check flag true
+     code.css(e[:parent]).each do |code_css|
+       if code_css.text == e[:content]
+         exist = true
+       end
+     end
+     if !exist
+      @html_errors << new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
+     end
+   end
 
 
   #end
