@@ -134,4 +134,54 @@ class CodeTerminatorTest < Minitest::Test
     assert_equal errors.empty? , true
   end
 
+  def test_html_check_div_exist
+    ct = CodeTerminator::Html.new
+    p "16 test if div exists"
+    p errors = ct.match("exercises/html/check_div_exist.html","<html><head></head><body><div><h1>2017</h1></div></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_div_exist_error
+    ct = CodeTerminator::Html.new
+    p "17 test if div dont exists, throw error"
+    p errors = ct.match("exercises/html/check_div_exist.html","<html><head></head><body></body></html>")
+    assert_equal errors.empty? , false
+  end
+
+  def test_html_check_div_empty
+    ct = CodeTerminator::Html.new
+    p "18 test if div exists can contain elements in code"
+    p errors = ct.match("exercises/html/check_div_exist.html","<html><head></head><body><div><h1>2017</h1><h2>2018</h2></div></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_div_children_exist
+    ct = CodeTerminator::Html.new
+    p "19 test if div contains the children in code"
+    p errors = ct.match("exercises/html/check_div_children_exist.html","<html><head></head><body><div><h1>2017</h1><h2>2018</h2></div></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_div_children_exist_error
+    ct = CodeTerminator::Html.new
+    p "20 test if div dont contains the children in code, throw error"
+    p errors = ct.match("exercises/html/check_div_children_exist.html","<html><head></head><body><div></div></body></html>")
+    assert_equal errors.empty? , false
+  end
+
+  def test_html_check_get_children_in_parent_exist
+    ct = CodeTerminator::Html.new
+    p "A test if parent contains the children in code"
+    p errors = ct.match("exercises/html/check_div_children_exist.html","<html><head></head><body><div><h1>2017</h1><h2>2018</h2></div></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_get_children_in_parent_exist
+    ct = CodeTerminator::Html.new
+    p "B test if parent dont contains the children in code, throw error"
+    p errors = ct.match("exercises/html/check_div_children_exist.html","<html><head></head><body><div></div></body></html>")
+    assert_equal errors.empty? , false
+  end
+
+
 end

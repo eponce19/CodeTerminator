@@ -62,7 +62,7 @@ class CodeTerminator::Html
      @elements << node
 
      #search elements from body section
-       if !reader.at('body').nil?
+       if reader.at('body')
          node = Hash.new
          node[:parent] = "html"
          node[:tag] = "body"
@@ -72,8 +72,8 @@ class CodeTerminator::Html
            node = Hash.new
            node[:parent] = "html"
            node[:tag] = "body"
-           node[:attribute] = element_attribute.name if !element_attribute.name.nil?
-           node[:value] = element_attribute.value if !element_attribute.value.nil?
+           node[:attribute] = element_attribute.name if element_attribute.name
+           node[:value] = element_attribute.value if element_attribute.value
            node[:pointer] = element_attribute.pointer_id
            @elements << node
          end
@@ -81,7 +81,7 @@ class CodeTerminator::Html
       #end search
 
       #search elements from head section
-     if !reader.at('head').nil?
+     if reader.at('head')
        node = Hash.new
        node[:parent] = "html"
        node[:tag] = "head"
@@ -91,7 +91,7 @@ class CodeTerminator::Html
            node = Hash.new
            node[:parent] = "head"
            node[:tag] = child.name
-           node[:content] = child.text if !child.text.nil? or child.comment?
+           node[:content] = child.text if child.text or child.comment?
            node[:pointer] = child.pointer_id
            node[:parent_pointer] = child.parent.pointer_id
 
@@ -107,8 +107,8 @@ class CodeTerminator::Html
              end
              # node[:tag] = ( ? "text", child.name)
              node[:content] = child.text if !child.text.nil?
-             node[:attribute] = element_attribute.name if !element_attribute.name.nil?
-             node[:value] = element_attribute.value if !element_attribute.value.nil?
+             node[:attribute] = element_attribute.name if element_attribute.name
+             node[:value] = element_attribute.value if element_attribute.value
              node[:pointer] = element_attribute.pointer_id
              node[:parent_pointer] = child.pointer_id
              @elements << node
@@ -120,7 +120,7 @@ class CodeTerminator::Html
     #end search elements
 
     #search elements inside body (children)
-    if !reader.at('body').nil?
+    if reader.at('body')
       reader.at('body').children.each do |child|
         if child.attribute_nodes.empty?
           node = Hash.new
@@ -135,8 +135,8 @@ class CodeTerminator::Html
             node = Hash.new
             node[:parent] = "body"
             node[:tag] = child.name
-            node[:attribute] = element_attribute.name if !element_attribute.name.nil?
-            node[:value] = element_attribute.value if !element_attribute.value.nil?
+            node[:attribute] = element_attribute.name if element_attribute.name
+            node[:value] = element_attribute.value if element_attribute.value
             node[:pointer] = element_attribute.pointer_id
             node[:parent_pointer] = child.pointer_id
             @elements << node
@@ -415,7 +415,6 @@ class CodeTerminator::Html
 
    def add_children(parent)
      parent.children.each do |child|
-
        if child.attribute_nodes.empty?
           node = Hash.new
           node[:parent] = parent.name
@@ -454,17 +453,17 @@ class CodeTerminator::Html
    end
 
    def remove_empty_text (reader)
-     if !reader.at('head').nil?
+     if reader.at('head')
      reader.at('head').children.each do |child|
-       if !child.text.nil?
+       if child.text
          child.remove if child.content.to_s.squish.empty? && child.class == Nokogiri::XML::Text
        end
         check_children(child) if child.children.any?
      end
     end
-      if !reader.at('body').nil?
+      if reader.at('body')
      reader.at('body').children.each do |child|
-       if !child.text.nil?
+       if child.text
          child.remove if child.content.to_s.squish.empty? && child.class == Nokogiri::XML::Text
        end
         check_children(child) if child.children.any?
@@ -475,8 +474,8 @@ class CodeTerminator::Html
 
    def check_children(parent)
      parent.children.each do |child|
-       if !child.text.nil?
-         child.remove if child.content.to_s.squish.empty?
+       if child.text
+         child.remove if child.content.to_s.squish.empty? && child.class == Nokogiri::XML::Text
        end
        check_children(child) if child.children.any?
      end
