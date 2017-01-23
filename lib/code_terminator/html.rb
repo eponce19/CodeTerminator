@@ -326,12 +326,12 @@ class CodeTerminator::Html
 
         code.css(e[:tag]).each do |tag|
 
-          p "code css + " + e[:tag].to_s
-          p "pointer element " + e[:pointer].to_s
+          # p "code css + " + e[:tag].to_s
+          # p "pointer element " + e[:pointer].to_s
 
-          p e_check = css_code_checked.select {|element| element[:target_pointer].to_s == e[:pointer].to_s }
-          p e_check2 = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s }
-          p e_check3 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
+          e_check = css_code_checked.select {|element| element[:target_pointer].to_s == e[:pointer].to_s }
+          e_check2 = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s }
+          e_check3 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
           if e_check.count < 1 and e_check2.count < 1 and e_check3.count < 1
 
           element_checked = Hash.new
@@ -354,7 +354,7 @@ class CodeTerminator::Html
                    error333 = new_error(element: e, type: 333, description: "Make sure that the attribute #{e[:attribute]} in `<#{e[:tag]}>` has the value #{e[:value]}")
                  end
              else
-               p "add code_checked"
+              #  p "add code_checked"
                css_code_checked << element_checked
                exist_in_body << true
              end
@@ -366,9 +366,9 @@ class CodeTerminator::Html
 
         #  Check that tags exist within parent tags
         if tag.first.respond_to? :parent
-          p  "check if exists in parent tags"
-          p e_check4 = css_code_checked.select {|element| element[:pointer].to_s == e[:pointer].to_s }
-          p e_check5 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
+          # p  "check if exists in parent tags"
+          e_check4 = css_code_checked.select {|element| element[:pointer].to_s == e[:pointer].to_s }
+          e_check5 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
 
          if (tag.count < 2 && !tag.first.nil?) or (e_check4.count < 1 && e_check5.count < 1)
            if tag.first.parent.name != e[:parent]
@@ -390,7 +390,7 @@ class CodeTerminator::Html
 
        else
          #  Check that the tag is present
-         p "check if exists in parent"
+        #  p "check if exists in parent"
          e_check4 = css_code_checked.select {|element| element[:pointer].to_s == e[:pointer].to_s }
          e_check5 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
           if code.at_css(e[:tag]).nil? or e_check4.count < 1 and e_check5.count < 1
@@ -406,7 +406,7 @@ class CodeTerminator::Html
       end
 
      end
-     p css_code_checked
+    #  p css_code_checked
 
      html_errors
    end
@@ -544,12 +544,12 @@ class CodeTerminator::Html
 
        #throw errors of comment or text
        #if comment not found, throw error
-        if !(defined? @comment_found).nil?
+        if (defined? @comment_found) && !@comment_found
           @html_errors << new_error(element: e, type: 404, description:  "Remember to add the comment tag")
           remove_instance_variable(:@comment_found) if !@comment_found
         end
 
-       if !text_found && !error330.nil?
+       if !text_found && error330
          @html_errors << error330
          error330 = nil
        end
