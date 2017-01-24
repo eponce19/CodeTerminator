@@ -218,10 +218,45 @@ class CodeTerminatorTest < Minitest::Test
     assert_equal errors.empty? , false
   end
 
+  def test_html_check_empty_divs_exist_error
+    ct = CodeTerminator::Html.new
+    p "25 test if three divs exists in code, throw error"
+    p errors = ct.match("exercises/html/check_empty_divs_exist.html","<html><head></head><body><div></div><div></div></body></html>")
+    assert_equal errors.empty? , false
+  end
+
+  def test_html_check_divs_exist
+    ct = CodeTerminator::Html.new
+    p "26 test if three divs exists in code"
+    p errors = ct.match("exercises/html/check_divs_exist.html","<html><head></head><body><div><h1>2017</h1></div><div><h2>2017</h2></div><div><h2>2018</h2></div></body></html>")
+    assert_equal errors.empty? , true
+  end
+
   def test_html_check_divs_exist_error
     ct = CodeTerminator::Html.new
-    p "25 test if two divs exists in code, throw error"
-    p errors = ct.match("exercises/html/check_divs_exist.html","<html><head></head><body><div></div></body></html>")
+    p "27 test if three divs exists in code but with different children, throw error"
+    p errors = ct.match("exercises/html/check_divs_exist.html","<html><head></head><body><div><h1>2017</h1></div><div><h2>2017</h2></div><div></div></body></html>")
+    assert_equal errors.empty? , false
+  end
+
+  def test_html_check_divs_exist_error_2
+    ct = CodeTerminator::Html.new
+    p "28 test if three divs exists in code but move children to other divs, throw error"
+    p errors = ct.match("exercises/html/check_divs_exist.html","<html><head></head><body><div><h1>2017</h1></div><div><h2>2017</h2><h2>2018</h2></div><div></div></body></html>")
+    assert_equal errors.empty? , false
+  end
+
+  def test_html_check_imgs_exist
+    ct = CodeTerminator::Html.new
+    p "28 test if img can be empty"
+    p errors = ct.match("exercises/html/check_imgs_empty_exist.html","<html><head></head><body><img src='kitten.png'><img src='cat.png'></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_imgs_exist_error
+    ct = CodeTerminator::Html.new
+    p "29 test if imgs can be empty and detect one is missing"
+    p errors = ct.match("exercises/html/check_imgs_empty_exist.html","<html><head></head><body><img src=''></body></html>")
     assert_equal errors.empty? , false
   end
 

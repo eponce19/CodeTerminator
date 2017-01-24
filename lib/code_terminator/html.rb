@@ -294,16 +294,28 @@ class CodeTerminator::Html
 
      elements = get_elements(source)
 
-     css_code_checked = Array.new
 
      exist_in_body = Array.new
 
      error_elements = Array.new
 
+     errors_count = Array.new
 
      error333 = nil
 
+     #lista de relaciones entre tags y elementos
+     css_code_checked = Array.new
+
+
      elements.each do |e|
+
+       if errors_count.select {|element| element[:parent_pointer].to_s == e[:parent_pointer].to_s && element[:tag].to_s == e[:tag]}.count < 1
+         error_element = Hash.new
+         error_element[:tag] = e[:tag]
+         error_element[:parent_pointer] = e[:parent_pointer]
+         error_element[:count] = 0
+         errors_count << error_element
+       end
 
        item = e[:tag]
 
@@ -327,81 +339,55 @@ class CodeTerminator::Html
 
        if code.css(e[:tag]).length > 0
 
-
         code.css(e[:tag]).each do |tag|
 
-          p "code original css + " + e[:tag].to_s
-          p "pointer original element " + e[:pointer].to_s
-          p "pointer element code " + tag.pointer_id.to_s
-
-          e_check = css_code_checked.select {|element| element[:target_pointer].to_s == e[:pointer].to_s }
+          e_check = css_code_checked.select {|element| element[:original_pointer].to_s == e[:pointer].to_s }
+          # p "echeck " + e_check.to_s
           e_check2 = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s }
-          #e_check3 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
 
-          e_check_exist = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s && element[:target_pointer].to_s == e[:pointer]}
-          e_check_2_exist = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s && element[:target_pointer].to_s != e[:pointer]}
-          # e_check_3_exist = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s && element[:target_pointer].to_s != e[:pointer]}
+          #original_pointer es el pointer del elemento e[]
+          #busca si el original_pointer esta en la lista de relaciones
+          #busca si el pointer del tag esta en la lista de relaciones
+          #cuando un original pointer o un pointer esta en la lista de relaciones, ya no puede volver a ser ingresado en la lista
+          #si el original pointer ya esta en la lista de relaciones, ya no es necesario volver a checarlo
+          check_original_pointer = css_code_checked.select {|element| element[:original_pointer].to_s == e[:pointer].to_s }
 
-          p "check1 " + e_check_exist.to_s
-          p "check2 " + e_check_2_exist.to_s
+          check_add_pointer = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s }
+
           #si el target pointer- pointer no esta en la lista de check agregar,
           #si es target-pointer que ya existe + otro pointer da error,
           #si es target-pointer y si esta, hacer nada.
           #si pointer ya esta en la lista hacer nada
           #look for same tags in code
-          # p elements.select {|x| x[:tag].to_s == e[:tag].to_s }
-          if elements.select {|x| x[:tag].to_s == e[:tag].to_s }.count > 1
-            if e_check.count == 0 && e_check2.count == 0
-              element_checked = Hash.new
-              element_checked[:pointer] = tag.pointer_id
-              element_checked[:tag] = e[:tag]
-              element_checked[:target_pointer] = e[:pointer]
-              element_checked[:target_parent_pointer] = e[:parent_pointer]
-              css_code_checked << element_checked
-              p css_code_checked.to_s
-            elsif (e_check.count == 1) || (e_check2.count == 1 && e_check.count == 0)
-              p "error"
-              error_e = Hash.new
-              error_e[:e] = e
-              error_e[:pointer] = tag.pointer_id
-              error_elements << error_e
-              # html_errors << new_error(element: e, type: 440, description: "Remember to add the `<#{e[:tag]}>` tag inside `<#{e[:parent]}>`")
-              # p "css code list " + css_code_checked.to_s
-              # if css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s }
-              #
-              # end
-            # elsif e_check_exist.count == 1
-            #   html_errors << new_error(element: e, type: 440, description: "Remember to add the `<#{e[:tag]}>` tag inside `<#{e[:parent]}>`")
-            end
-            e_check_exist = nil
-          end
-          # if tag
-          # if tag.respond_to? :parent
-          #   p  "check if exists in parent tags"
-          #   p e_check4 = css_code_checked.select {|element| element[:pointer].to_s == e[:pointer].to_s }
-          #   p e_check5 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
-          #  if (tag.count < 2 && tag.first) or (e_check4.count < 1 && e_check5.count < 1)
-          #    if tag.parent.name != e[:parent]
-          #      html_errors << new_error(element: e, type: 440, description: "Remember to add the `<#{e[:tag]}>` tag inside `<#{e[:parent]}>`")
-          #    end
-          #  else
-          #    exist_in_parent = false
-          #    tag.each do |code_css|
-          #      exist_in_parent = true if code_css.parent.name == e[:parent]
-          #    end
-          #    html_errors << new_error(element: e, type: 440, description: "Remember to add the `<#{e[:tag]}>` tag inside `<#{e[:parent]}>`") if !exist_in_parent
-          #   end
-          # end
-          # end
 
+              if check_original_pointer.count == 0
+                if check_add_pointer.count < 1
+                  element_checked = Hash.new
+                  element_checked[:pointer] = tag.pointer_id
+                  element_checked[:tag] = e[:tag]
+                  element_checked[:original_pointer] = e[:pointer]
+                  element_checked[:original_parent_pointer] = e[:parent_pointer]
+                  css_code_checked << element_checked
+
+
+                  error_element = errors_count.select {|element| element[:tag].to_s == e[:tag].to_s && element[:parent_pointer].to_s == e[:parent_pointer].to_s}.first
+                  error_element[:count] += 1
+
+                else
+
+                end
+              end
+            # end
+            # e_check_exist = nil
+          # end
 
           if e_check.count < 1 and e_check2.count < 1
 
-          element_checked = Hash.new
-          element_checked[:pointer] = tag.pointer_id
-          element_checked[:tag] = e[:tag]
-          element_checked[:target_pointer] = e[:pointer]
-          element_checked[:target_parent_pointer] = e[:parent_pointer]
+            element_checked = Hash.new
+            element_checked[:pointer] = tag.pointer_id
+            element_checked[:tag] = e[:tag]
+            element_checked[:target_pointer] = e[:pointer]
+            element_checked[:target_parent_pointer] = e[:parent_pointer]
 
 
          if e[:attribute]
@@ -472,23 +458,23 @@ class CodeTerminator::Html
        exist_in_body = []
 
       end
-      p "code checked" + css_code_checked.to_s
-      p "errors = " + error_elements.to_s
-      # errors_x = error_elements.group_by{|k,v| v}
-      error_elements.each do |error|
-        p error.to_s
-        e_check_errors = css_code_checked.select {|element| element[:pointer].to_s == error[:pointer].to_s}
-        # p e_check_errors = css_code_checked.select {|element| element[:pointer].to_s == error[:pointer].to_s && element[:target_pointer].to_s == error[:e][:pointer].to_s}
-
-        # e_check2_errors = css_code_checked.select {|element| element[:target_pointer].to_s == error[:e][:pointer].to_s }
-        if e_check_errors.count < 1
-          html_errors << new_error(element: error[:e], type: 404, description:  "Remember to add the `<#{error[:e][:tag]}>` tag")
-        end
-      end
-
 
      end
+
+     errors_count.each do |x|
+       #filtrar por parent
+       # tag_count = code.css(x[:tag]).length
+       tag_count = elements.select {|element| element[:parent_pointer].to_s == x[:parent_pointer].to_s && element[:tag].to_s == x[:tag]}.count
+
+       if tag_count > 1
+         if x[:count] < tag_count
+           html_errors << new_error(element: x[:tag], type: 404, description:  "Remember to add the `<#{x[:tag]}>` tag")
+         end
+       end
+     end
+
      html_errors
+
    end
 
    private
