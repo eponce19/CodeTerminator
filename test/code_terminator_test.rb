@@ -260,4 +260,12 @@ class CodeTerminatorTest < Minitest::Test
     assert_equal errors.empty? , false
   end
 
+  def test_html_check_divs_with_attributes_exist_error
+    ct = CodeTerminator::Html.new
+    p "30 test if divs have attribute detect if one is missing"
+    # p errors = ct.match("exercises/html/check_imgs_empty_exist.html","<html><head></head><body><img src=''></body></html>")
+    p errors = ct.match("exercises/issue22.html","<html><head><title>My Favorite Book</title></head><body><div id='title' class='about'><h1></h1><p></p></div></body></html>")
+    assert_equal errors.empty? , false
+  end
+
 end
