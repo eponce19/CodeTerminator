@@ -218,4 +218,11 @@ class CodeTerminatorTest < Minitest::Test
     assert_equal errors.empty? , false
   end
 
+  def test_html_check_divs_exist_error
+    ct = CodeTerminator::Html.new
+    p "25 test if two divs exists in code, throw error"
+    p errors = ct.match("exercises/html/check_divs_exist.html","<html><head></head><body><div></div></body></html>")
+    assert_equal errors.empty? , false
+  end
+
 end
