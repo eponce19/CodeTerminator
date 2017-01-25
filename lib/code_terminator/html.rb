@@ -378,21 +378,22 @@ class CodeTerminator::Html
         #  if tag_element
          if e[:attribute]
 
-          #  p "e --- " + e[:tag].to_s
-          #  p "e pt--- " + e[:pointer].to_s
-          #  p "e parent pt--- " + e[:parent_pointer].to_s
-          #  p "e attribute --- " + e[:attribute].to_s
+           p "e --- " + e[:tag].to_s
+           p "e pt--- " + e[:pointer].to_s
+           p "e parent pt--- " + e[:parent_pointer].to_s
+           p "e attribute --- " + e[:attribute].to_s
 
 
           #  if tag.attribute(e[:attribute])
             #  p "elements count = " + css_code_checked.to_s
-             tag_element = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s}.first
-            #  p "tag --" + tag.name.to_s
-            #  p "tag parent -- " + tag.parent.name.to_s
-            #  p "tag pointer -- " + tag.pointer_id.to_s
-            #  p "tag parent pointer -- " + tag.parent.pointer_id.to_s
-            #  p "tag attribute -- " + tag.attribute(e[:attribute]).to_s
-            #  p "parent_element --- " + tag_element.to_s
+             tag_element = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s && element[:original_pointer] == e[:pointer] }.first
+             p "tag --" + tag.name.to_s
+             p "tag --" + tag.to_s
+             p "tag parent -- " + tag.parent.name.to_s
+             p "tag pointer -- " + tag.pointer_id.to_s
+             p "tag parent pointer -- " + tag.parent.pointer_id.to_s
+             p "tag attribute -- " + tag.attribute(e[:attribute]).to_s
+              p "parent_element --- " + tag_element.to_s
           #  else
             # end
 
@@ -402,7 +403,7 @@ class CodeTerminator::Html
             #  p "attribute element " + e[:attribute].to_s
             #  p "attribute tag " + tag.attribute(e[:attribute]).name.to_s
             #  if e[:attribute] != tag.attribute(e[:attribute]).name
-               html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]}")
+               p html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]}")
             #  end
            end
            else
@@ -469,7 +470,7 @@ class CodeTerminator::Html
        # tag_count = code.css(x[:tag]).length
        tag_count = elements.select {|element| element[:parent_pointer].to_s == x[:parent_pointer].to_s && element[:tag].to_s == x[:tag]}.count
       #  p x[:tag]!="body"
-       if tag_count >= 1 && !(x[:tag]=="body" || x[:tag]=="head" || x[:tag]=="text")
+       if tag_count >= 1 && !(x[:tag]=="body" || x[:tag]=="head" || x[:tag]=="text" || x[:tag]=="comment")
          if x[:count] < tag_count
            html_errors << new_error(element: x[:tag], type: 404, description:  "Remember to add the `<#{x[:tag]}>` tag")
          end
