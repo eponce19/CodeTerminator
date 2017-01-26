@@ -264,8 +264,44 @@ class CodeTerminatorTest < Minitest::Test
     ct = CodeTerminator::Html.new
     p "30 test if divs have attribute detect if one is missing"
     # p errors = ct.match("exercises/html/check_imgs_empty_exist.html","<html><head></head><body><img src=''></body></html>")
-    p errors = ct.match("exercises/issue22.html","<html><head><title>My Favorite Book</title></head><body><div id='title' class='about'><h1></h1><p></p></div></body></html>")
+    p errors = ct.match("exercises/html/check_divs_different_attribute_exist.html","<html><head><title>My Favorite Book</title></head><body><div id='title' class='about'><h1></h1><p></p></div></body></html>")
     assert_equal errors.empty? , false
   end
 
+  def test_html_check_divs_with_attributes_exist_error_2
+    ct = CodeTerminator::Html.new
+    p "31 test if divs have attribute detect if one is missing"
+    # p errors = ct.match("exercises/html/check_imgs_empty_exist.html","<html><head></head><body><img src=''></body></html>")
+    p errors = ct.match("exercises/html/check_divs_different_attribute_exist_error.html","<html><head><title>My Favorite Book</title></head><body><div id='title'><h1></h1></div><div class='about'><p></p></div></body></html>")
+    assert_equal errors.count == 2 , true
+  end
+
+  def test_html_check_divs_with_attributes_exist_error_3
+    ct = CodeTerminator::Html.new
+    p "32 test if divs have attribute detect if one is missing"
+    # p errors = ct.match("exercises/html/check_imgs_empty_exist.html","<html><head></head><body><img src=''></body></html>")
+    p errors = ct.match("exercises/issue22.html","<html><head><title>My Favorite Book</title></head><body><div id='title'><h1></h1></div><div class='about'><p></p></div><div class='contact'><p></p></div></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_imgs_with_empty_alt_exist
+    ct = CodeTerminator::Html.new
+    p "26 test if three divs exists in code"
+    errors = ct.match("exercises/issue24.html","<html><head></head><body><img src='apple' alt='fruit'><img src='banana' alt='more fruit'><img src='pear' alt='even more fruit'></body></html>")
+    assert_equal errors.empty? , true
+  end
+
+  def test_html_check_imgs_with_empty_alt_exist_error
+    ct = CodeTerminator::Html.new
+    p "26 test if three divs exists in code"
+    errors = ct.match("exercises/issue24.html","<html><head></head><body><img src='apple' alt='fruit'><img src='banana' alt='more fruit'><img src='pe' alt='even more fruit'></body></html>")
+    assert_equal errors.empty? , false
+  end
+
+  def test_html_check_imgs_one_less_with_empty_alt_exist_error
+    ct = CodeTerminator::Html.new
+    p "26 test if three divs exists in code"
+    errors = ct.match("exercises/issue24.html","<html><head></head><body><img src='apple' alt='fruit'><img src='banana' alt='more fruit'></body></html>")
+    assert_equal errors.empty? , false
+  end
 end
