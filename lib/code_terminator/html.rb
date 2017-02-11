@@ -35,6 +35,7 @@ class CodeTerminator::Html
      node = Hash.new
      node[:parent] = ""
      node[:tag] = "html"
+     node[:pointer] = reader.css('html').first.pointer_id
      @elements << node
 
      #search elements from body section
@@ -42,6 +43,8 @@ class CodeTerminator::Html
          node = Hash.new
          node[:parent] = "html"
          node[:tag] = "body"
+         node[:pointer] = reader.css('body').first.pointer_id
+         node[:parent_pointer] = reader.css('html').first.pointer_id
          @elements << node
 
          reader.at('body').attribute_nodes.each do |element_attribute|
@@ -51,6 +54,7 @@ class CodeTerminator::Html
            node[:attribute] = element_attribute.name if element_attribute.name
            node[:value] = element_attribute.value if element_attribute.value
            node[:pointer] = element_attribute.pointer_id
+           node[:parent_pointer] = reader.css('html').first.pointer_id
            @elements << node
          end
       end
@@ -61,7 +65,10 @@ class CodeTerminator::Html
        node = Hash.new
        node[:parent] = "html"
        node[:tag] = "head"
+       node[:pointer] = reader.css('head').first.pointer_id
+       node[:parent_pointer] = reader.css('html').first.pointer_id
        @elements << node
+
        reader.at('head').children.each do |child|
          if child.attribute_nodes.empty?
            node = Hash.new
@@ -70,7 +77,6 @@ class CodeTerminator::Html
            node[:content] = child.text if child.text or child.comment?
            node[:pointer] = child.pointer_id
            node[:parent_pointer] = child.parent.pointer_id
-
            @elements << node
          else
            child.attribute_nodes.each do |element_attribute|
@@ -81,8 +87,7 @@ class CodeTerminator::Html
              else
                node[:tag] = child.name
              end
-             # node[:tag] = ( ? "text", child.name)
-             node[:content] = child.text if !child.text.nil?
+             node[:content] = child.text if child.text
              node[:attribute] = element_attribute.name if element_attribute.name
              node[:value] = element_attribute.value if element_attribute.value
              node[:pointer] = element_attribute.pointer_id
@@ -129,7 +134,6 @@ class CodeTerminator::Html
       end
      end
      #end search elements
-
      @elements
    end
 
@@ -151,27 +155,142 @@ class CodeTerminator::Html
 
    def match(source, code)
      @html_errors = Array.new
-     html_errors = @html_errors
      code = Nokogiri::HTML(code)
-     elements = get_elements(source)
+     p @elements = get_elements(source)
+
+     @elements.each do |e|
+       css_string = build_css(e,'').strip
+
+       #search_attribute()
+       if e[:attribute]
+         search_attribute = code.css(css_string).first
+         if !search_attribute
+           @html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]} with the value #{e[:value]}")
+         end
+
+       #search_text()
+        elsif e[:tag]=="text"
+         search_element = code.css(css_string).first
+         if search_element
+           if search_element.text.strip != e[:content]
+             @html_errors << new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
+           end
+         end
+
+      #search_element()
+       else
+        #  search_element = code.css(css_string).first
+        #  if !search_element
+        #    html_errors << new_error(element: e[:tag], type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag in " + css_string.chomp(e[:tag]))
+        #  end
+       end
+
+     end
+
+     count_elements(code)
+     search_attribute_value(code)
+
+     p @html_errors
    end
 
 
 
    private
 
+   def build_css(element, css)
+     if !element[:parent].empty?
+
+       if !element[:attribute]
+
+          parent = @elements.select{|hash| hash[:pointer].to_s == element[:parent_pointer].to_s}.first
+          parent_css = parent[:tag].to_s if parent
+          css += parent_css
+
+           parent_attributes = @elements.select{|hash| hash[:parent_pointer].to_s == element[:parent_pointer].to_s && hash[:attribute]}
+           parent_attributes.each do |par_attr|
+             css += css_attribute_type(par_attr)
+          end
+          css += " "
+          css += element[:tag].to_s + " " if element[:tag] != "text"
+
+        else
+
+           search_attribute = @elements.select{|hash| hash[:parent_pointer].to_s == element[:parent_pointer].to_s && hash[:attribute].to_s == element[:attribute]}.first
+           css += search_attribute[:tag].to_s
+           attribute_css = css_attribute_type(search_attribute) if search_attribute
+           css += attribute_css
+
+        end
+
+      else
+
+        css += element[:tag].to_s + " " if element[:tag] != "text"
+
+      end
+
+       css
+   end
+
+   def css_attribute_type(element)
+     case element[:attribute]
+     when "id"
+       css_symbol = '#'
+     when "class"
+       css_symbol = '.'
+     else
+       css_symbol = ''
+     end
+     (css_symbol.to_s + element[:value].to_s)
+   end
+
+   def count_elements(code)
+     uniq_elements =  @elements.group_by{|h| h[:tag]}
+     uniq_elements.each do |e|
+      element_count = e[1].select{|hash| !hash[:attribute]}.count
+      code_count = code.css(e[0]).count
+      if element_count > code_count
+          @html_errors << new_error(element: e[0], type: 404, description:  "Remember to add the `<#{e[0]}>` tag.")
+      end
+     end
+   end
+
+   def search_attribute_value(code)
+     uniq_elements =  @elements.group_by{|h| h[:tag]}
+     uniq_elements.each do |e|
+       p "////////"
+      element_with_attributes = e[1].select{|hash| hash[:attribute]}
+      element_with_attributes.each do |ewa|
+          p build_css(ewa, '')
+      end
+      # code_count = code.css(e[0]).count
+      # if element_count > code_count
+      #   # search_element = code.css(css_string).first
+      #   # if !search_element
+      #     @html_errors << new_error(element: e[0], type: 404, description:  "Remember to add the `<#{e[0]}>` tag.")
+      # #   end
+      # end
+     end
+
+    #  search_attribute = code.css(css_string).first
+    #  if !search_attribute
+    #    @html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]} with the value #{e[:value]}")
+    #  end
+
+     #nodeset = doc.css('a[href]')
+     #nodeset.map {|element| element["href"]}
+   end
+
    def add_children(parent)
      parent.children.each do |child|
        if child.attribute_nodes.empty?
           node = Hash.new
           node[:parent] = parent.name
-          # node[:tag] = child.name
           if child.name == "#cdata-section"
             node[:tag] = "text"
           else
             node[:tag] = child.name
           end
-          node[:content] = child.text if !child.text.nil? and child.class!=Nokogiri::XML::Element
+          node[:content] = child.text.strip if child.text and child.class != Nokogiri::XML::Element
           node[:pointer] = child.pointer_id
           node[:parent_pointer] = child.parent.pointer_id
           @elements << node
@@ -179,16 +298,13 @@ class CodeTerminator::Html
          child.attribute_nodes.each do |element_attribute|
            node = Hash.new
            node[:parent] = parent.name
-          #  node[:tag] = child.namecode
            if element_attribute.name == "#cdata-section"
              node[:tag] = "text"
-           elsif element_attribute.name == "href"
-             node[:tag] = child.name
            else
-             node[:tag] = element_attribute.name
+             node[:tag] = child.name
            end
-           node[:attribute] = element_attribute.name if !element_attribute.name.nil?
-           node[:value] = element_attribute.value if !element_attribute.value.nil?
+           node[:attribute] = element_attribute.name if element_attribute.name
+           node[:value] = element_attribute.value if element_attribute.value
            node[:pointer] = element_attribute.pointer_id
            node[:parent_pointer] = child.pointer_id
            @elements << node
