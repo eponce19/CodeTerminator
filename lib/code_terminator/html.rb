@@ -32,11 +32,13 @@ class CodeTerminator::Html
      end
      #remove empty spaces from reader
      reader = remove_empty_text(reader)
-     node = Hash.new
-     node[:parent] = ""
-     node[:tag] = "html"
-     node[:pointer] = reader.css('html').first.pointer_id
-     @elements << node
+     if reader.css('html').any?
+       node = Hash.new
+       node[:parent] = ""
+       node[:tag] = "html"
+       node[:pointer] = reader.css('html').first.pointer_id
+       @elements << node
+     end
 
      #search elements from body section
        if reader.at('body')
@@ -156,7 +158,7 @@ class CodeTerminator::Html
    def match(source, code)
      @html_errors = Array.new
      code = Nokogiri::HTML(code)
-     p @elements = get_elements(source)
+     @elements = get_elements(source)
 
      @elements.each do |e|
        css_string = build_css(e,'').strip
@@ -245,14 +247,13 @@ class CodeTerminator::Html
        css_symbol = "[src]"
        css = css_symbol.to_s
      else
-       css_symbol = ''
+       css_symbol = element[:attribute]
        css = css_symbol.to_s
      end
      css
    end
 
    def are_all_elements(code, tag, css_string)
-    #  p "uniq"
      element_count = @elements.select{|hash| hash[:tag] == tag && !hash[:attribute]}.count
       code_count = code.css(css_string).count
       element_count > code_count ? false:true
@@ -260,11 +261,15 @@ class CodeTerminator::Html
 
    def count_elements(code)
      uniq_elements =  @elements.group_by{|h| h[:tag]}
+     p uniq_elements
      uniq_elements.each do |e|
-      element_count = e[1].select{|hash| !hash[:attribute]}.count
-      code_count = code.css(e[0]).count
-      if element_count > code_count
-          @html_errors << new_error(element: e[0], type: 404, description:  "Remember to add the `<#{e[0]}>` tag.")
+       if e[0] != "text"
+        #  p "element " + e[0].to_s
+         element_count = e[1].select{|hash| !hash[:attribute]}.count
+         code_count = code.css(e[0]).count
+         if element_count > code_count
+            @html_errors << new_error(element: e[0], type: 404, description:  "Remember to add the `<#{e[0]}>` tag.")
+         end
       end
      end
    end
