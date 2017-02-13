@@ -163,10 +163,10 @@ class CodeTerminator::Html
 
        #search_attribute()
        if e[:attribute]
-         search_attribute = code.css(css_string).first
-         if !search_attribute
-           @html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]} with the value #{e[:value]}")
-         end
+        #  search_attribute = code.css(css_string).first
+        #  if !search_attribute
+        #    @html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]} with the value #{e[:value]}")
+        #  end
 
        #search_text()
         elsif e[:tag]=="text"
@@ -179,10 +179,16 @@ class CodeTerminator::Html
 
       #search_element()
        else
-        #  search_element = code.css(css_string).first
-        #  if !search_element
-        #    html_errors << new_error(element: e[:tag], type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag in " + css_string.chomp(e[:tag]))
-        #  end
+
+         search_element = code.css(css_string).first
+         if !search_element
+            @html_errors << new_error(element: e[:tag], type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag in " + css_string.chomp(e[:tag]))
+        #  else
+        #    if !are_all_elements(code,e[:tag], css_string)
+        #     #  @html_errors << new_error(element: e[:tag], type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag.")
+        #    end
+          end
+
        end
 
      end
@@ -190,7 +196,7 @@ class CodeTerminator::Html
      count_elements(code)
      search_attribute_value(code)
 
-     p @html_errors
+     @html_errors
    end
 
 
@@ -221,13 +227,9 @@ class CodeTerminator::Html
            css += attribute_css
 
         end
-
       else
-
         css += element[:tag].to_s + " " if element[:tag] != "text"
-
       end
-
        css
    end
 
@@ -235,12 +237,25 @@ class CodeTerminator::Html
      case element[:attribute]
      when "id"
        css_symbol = '#'
+       css = css_symbol.to_s + element[:value].to_s
      when "class"
        css_symbol = '.'
+       css = css_symbol.to_s + element[:value].to_s
+     when "src"
+       css_symbol = "[src]"
+       css = css_symbol.to_s
      else
        css_symbol = ''
+       css = css_symbol.to_s
      end
-     (css_symbol.to_s + element[:value].to_s)
+     css
+   end
+
+   def are_all_elements(code, tag, css_string)
+    #  p "uniq"
+     element_count = @elements.select{|hash| hash[:tag] == tag && !hash[:attribute]}.count
+      code_count = code.css(css_string).count
+      element_count > code_count ? false:true
    end
 
    def count_elements(code)
@@ -257,27 +272,31 @@ class CodeTerminator::Html
    def search_attribute_value(code)
      uniq_elements =  @elements.group_by{|h| h[:tag]}
      uniq_elements.each do |e|
-       p "////////"
+
       element_with_attributes = e[1].select{|hash| hash[:attribute]}
       element_with_attributes.each do |ewa|
-          p build_css(ewa, '')
+
+          css_string = build_css(ewa, '')
+
+          if code.css(css_string).empty?
+            @html_errors << new_error(element: ewa, type: 334, description: "`<#{ewa[:tag]}>` should have an attribute named #{ewa[:attribute]}")
+          else
+
+            if ewa[:value] != "" && code.css(css_string).select{|x| x[ewa[:attribute]].to_s == ewa[:value].to_s}.empty?
+              @html_errors << new_error(element: ewa, type: 333, description: "Make sure that the attribute #{ewa[:attribute]} in `<#{ewa[:tag]}>` has the value #{ewa[:value]}")
+            end
+
+            if code.css(css_string).select{|x| x[ewa[:attribute]].to_s == ""}.any?
+              @html_errors << new_error(element: ewa, type: 335, description: "`<#{ewa[:attribute]}>` in `<#{ewa[:tag]}>` can't be empty")
+            end
+
+          end
+
       end
-      # code_count = code.css(e[0]).count
-      # if element_count > code_count
-      #   # search_element = code.css(css_string).first
-      #   # if !search_element
-      #     @html_errors << new_error(element: e[0], type: 404, description:  "Remember to add the `<#{e[0]}>` tag.")
-      # #   end
-      # end
-     end
 
-    #  search_attribute = code.css(css_string).first
-    #  if !search_attribute
-    #    @html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]} with the value #{e[:value]}")
-    #  end
+    end
 
-     #nodeset = doc.css('a[href]')
-     #nodeset.map {|element| element["href"]}
+
    end
 
    def add_children(parent)
