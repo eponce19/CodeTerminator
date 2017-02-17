@@ -69,15 +69,13 @@ class CodeTerminatorWebDevelopmentTest < Minitest::Test
 #validate comments
   def test_w_d_lesson_1_3
     ct = CodeTerminator::Html.new
-    p errors = ct.match("exercises/web_development/lesson1_3.html","<!DOCTYPE html><html><head></head><body><!--This paragraph is Han speaking-->
-<p>I love to fly my spaceship. My best friend is big and furry. Sometimes I get myself into sticky situations.</p><!--This paragraph is Chewbacca speaking-->
-<p>Han is my best friend and he is the only one that understands me when I talk.</p></body></html>")
+    p errors = ct.match("exercises/web_development/lesson1_3.html","<!DOCTYPE html><html><head></head><body><!-- This paragraph is Han speaking --><p>I love to fly my spaceship. My best friend is big and furry. Sometimes I get myself into sticky situations.</p><!--This paragraph is Chewbacca speaking--><p>Han is my best friend and he is the only one that understands me when I talk.</p></body></html>")
     assert_equal errors.empty? , true
   end
 
   def test_w_d_lesson_1_3_without_text
     ct = CodeTerminator::Html.new
-    errors = ct.match("exercises/web_development/lesson1_3.html","<!DOCTYPE html><html><head>Hello</head><body><!--This paragraph is Han speaking--><p></p><!--This paragraph is Chewbacca speaking--><p></p></body></html>")
+    errors = ct.match("exercises/web_development/lesson1_3.html","<!DOCTYPE html><html><head></head><body><!--This paragraph is Han speaking--><p></p><!--This paragraph is Chewbacca speaking--><p></p></body></html>")
     assert_equal errors.empty? , false
   end
 
@@ -91,13 +89,13 @@ class CodeTerminatorWebDevelopmentTest < Minitest::Test
 
   def test_w_d_lesson_1_3_without_comment
     ct = CodeTerminator::Html.new
-    errors = ct.match("exercises/web_development/lesson1_3.html","<!DOCTYPE html><html><head>Hello</head><body><p>I love to fly my spaceship. My best friend is big and furry. Sometimes I get myself into sticky situations.</p><p>Han is my best friend and he is the only one that understands me when I talk.</p></body></html>")
+    errors = ct.match("exercises/web_development/lesson1_3.html","<!DOCTYPE html><html><head></head><body><p>I love to fly my spaceship. My best friend is big and furry. Sometimes I get myself into sticky situations.</p><p>Han is my best friend and he is the only one that understands me when I talk.</p></body></html>")
     assert_equal errors.empty? , false
   end
 
   def test_w_d_lesson_1_3_with_dif_comment
     ct = CodeTerminator::Html.new
-    errors = ct.match("exercises/web_development/lesson1_3.html","<!DOCTYPE html><html><head>Hello</head><body><!--This --><p>I love to fly my spaceship. My best friend is big and furry. Sometimes I get myself into sticky situations.</p><!--This paragraph --><p>Han is my best friend and he is the only one that understands me when I talk.</p></body></html>")
+    errors = ct.match("exercises/web_development/lesson1_3.html","<!DOCTYPE html><html><head></head><body><!--This --><p>I love to fly my spaceship. My best friend is big and furry. Sometimes I get myself into sticky situations.</p><!--This paragraph --><p>Han is my best friend and he is the only one that understands me when I talk.</p></body></html>")
     assert_equal errors.empty? , false
   end
 

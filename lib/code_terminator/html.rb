@@ -161,7 +161,7 @@ class CodeTerminator::Html
      @elements = get_elements(source)
 
      @elements.each do |e|
-       css_string = build_css(e,'').strip
+       p css_string = build_css(e,'').strip
 
        #search_attribute()
        if e[:attribute]
@@ -171,14 +171,15 @@ class CodeTerminator::Html
         #  end
 
        #search_text()
-        elsif e[:tag]=="text"
-         search_element = code.css(css_string).first
-         if search_element
-           if search_element.text.strip != e[:content]
-             @html_errors << new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
+      elsif e[:tag] == "text" || e[:tag] == "comment"
+         element_name = e[:tag]=="comment" ? "comment":e[:parent]
+         search_elements = code.css(css_string)
+         if e[:content].strip != ""
+           element = search_elements.select{|hash| hash.text.strip == e[:content].strip}
+           if element.empty?
+             @html_errors << new_error(element: e, type: 330, description: "The text inside `<#{element_name}>` should be #{e[:content]}")
            end
          end
-
       #search_element()
        else
 
@@ -198,7 +199,7 @@ class CodeTerminator::Html
      count_elements(code)
      search_attribute_value(code)
 
-     @html_errors
+     p @html_errors
    end
 
 
@@ -207,19 +208,21 @@ class CodeTerminator::Html
 
    def build_css(element, css)
      if !element[:parent].empty?
-
        if !element[:attribute]
+          if element[:tag]=="comment"
+           css += "//comment()"
+          else
+            parent = @elements.select{|hash| hash[:pointer].to_s == element[:parent_pointer].to_s}.first
+            parent_css = parent[:tag].to_s if parent
+            css += parent_css
 
-          parent = @elements.select{|hash| hash[:pointer].to_s == element[:parent_pointer].to_s}.first
-          parent_css = parent[:tag].to_s if parent
-          css += parent_css
-
-           parent_attributes = @elements.select{|hash| hash[:parent_pointer].to_s == element[:parent_pointer].to_s && hash[:attribute]}
-           parent_attributes.each do |par_attr|
-             css += css_attribute_type(par_attr)
+             parent_attributes = @elements.select{|hash| hash[:parent_pointer].to_s == element[:parent_pointer].to_s && hash[:attribute]}
+             parent_attributes.each do |par_attr|
+               css += css_attribute_type(par_attr)
+            end
+            css += " "
+            css += element[:tag].to_s + " " if element[:tag] != "text"
           end
-          css += " "
-          css += element[:tag].to_s + " " if element[:tag] != "text"
 
         else
 
@@ -261,18 +264,27 @@ class CodeTerminator::Html
 
    def count_elements(code)
      uniq_elements =  @elements.group_by{|h| h[:tag]}
-     p uniq_elements
      uniq_elements.each do |e|
        if e[0] != "text"
-        #  p "element " + e[0].to_s
+        #  "element " + e[0].to_s
          element_count = e[1].select{|hash| !hash[:attribute]}.count
-         code_count = code.css(e[0]).count
+         if e[0] != "comment"
+           code_count = code.css(e[0]).count
+         else
+           code_count = code.css("//comment()").count
+         end
+
          if element_count > code_count
             @html_errors << new_error(element: e[0], type: 404, description:  "Remember to add the `<#{e[0]}>` tag.")
          end
       end
      end
    end
+
+  #  def search_comments(code)
+  #    comment_elements = code.css('//comment()')
+   #
+  #  end
 
    def search_attribute_value(code)
      uniq_elements =  @elements.group_by{|h| h[:tag]}
