@@ -32,15 +32,9 @@ To parse HTML and match the file with html code you just need to do:
     # code = code get from an editor
     # source = Source of the file you want to compare with
 
-    # First, validate syntasis of the code
     ct = CodeTerminator::Html.new
-    errors = ct.validate_syntax(code)
-    result << errors[0]
+    result = ct.match(source, code)
 
-    # If code don't have errors, match the code with your html file
-    if errors.empty?
-      result = ct.match(source, code)
-    end
 ```
 If the code and the source mismatch,  `ct.match()`  will return an array with the differences between code and source file.
 You will know that the code and the source file have the same html elements when the `ct.match()` return a nil array.
@@ -59,14 +53,9 @@ To parse CSS and match the file with css code you just need to do:
     # code = code get from an editor
     # source = Source of the file you want to compare with
 
-    # First, validate syntasis of the code
     ct = CodeTerminator::Css.new
-    errors = ct.validate_syntax(code)
+    result = ct.match(source, code)
 
-    # If code do't have errors, match the code with your html file
-    if errors.empty?
-      result = ct.match(source, code)
-    end
 ```
 If the code and the source mismatch,  `ct.match()`  will return an array with the differences between code and source file.
 You will know that the code and the source file have the same css elements when the `ct.match()` return a nil array.
@@ -122,13 +111,14 @@ Errors Types
   <li><b>330 : </b>Different text in the html tag</li>
   <li><b>333 : </b>Different value in the html attribute</li>
   <li><b>334 : </b>Html attribute doesn't exist in the tag</li>
+  <li><b>335 : </b>If original Html attribute is blank it can't be empty</li>
   <li><b>404 : </b>Element not found</li>
   <li><b>440 : </b>Tag not found in the parent tag</li>
 </ul>
 
 <br>
 
-###new_file(source, code)
+###new_file(source, code) DEPRECATED, not available in 0.6.0 and above
 Create a Html/Css file with the code of the editor. Return a boolean that indicate if the file was created or not.
 #####HTML
 ```ruby
@@ -143,7 +133,7 @@ Create a Html/Css file with the code of the editor. Return a boolean that indica
     #   => true
 ```
 
-###read_file(source)
+###read_file(source) DEPRECATED, not available in 0.6.0 and above
 Read a html file. Return the text of the file.
 #####HTML
 ```ruby
@@ -158,7 +148,7 @@ Read a html file. Return the text of the file.
      #   => "h1{ margin: 50px; }"
 ```
 
-###validate_syntax(code)
+###validate_syntax(code) DEPRECATED, not available in 0.6.0 and above
 Validate if the syntax is correct. Return an array with errors.
 #####HTML
 ```ruby
@@ -188,7 +178,7 @@ Get html elements of a html file. Return a list of elements with their propertie
      #   => [{:selector=>"h1"}, {:selector=>"h1", :property=>"margin", :value=>"50px"}]
 ```
 
-###get_instructions(source)
+###get_instructions(source) DEPRECATED, not available in 0.6.0 and above
 Get the instructions to recreate the html code. Return an array with strings .
 #####HTML
 ```ruby
@@ -203,7 +193,7 @@ Get the instructions to recreate the html code. Return an array with strings .
      #   => ["Create the selector body", "In the selector body add the property ' background-color'  with value 'yellow' "]
 ```
 
-###print_elements(source)
+###print_elements(source) DEPRECATED, not available in 0.6.0 and above
 Get the elements of the code in html format. Return a string with elements in html.
 <br>
 #####HTML
