@@ -12,30 +12,6 @@ class CodeTerminator::Html
     @source_type = args[:source_type]
   end
 
-    # Create a Html file with the code of the editor. Return a boolean that indicate if the file was created or not.
-    #
-    # Example:
-    #   >> CodeTerminator::Html.new_file("hola_mundo.html", "<h1>Hola Mundo!</h1>")
-    #   => true
-    #
-    # Arguments:
-    #   source: (String)
-    #   code: (String)
-
-   def new_file(source,code)
-     fileHtml = File.new(source, "w+")
-     result = true
-     begin
-       fileHtml.puts code
-     rescue
-       result = false
-     ensure
-       fileHtml.close unless fileHtml.nil?
-     end
-     #return true if file was succesfully created
-     result
-   end
-
 
      # Get html elements of a html file. Return a list of Nokogiri XML objects.
      #
@@ -56,45 +32,53 @@ class CodeTerminator::Html
      end
      #remove empty spaces from reader
      reader = remove_empty_text(reader)
-     node = Hash.new
-     node[:parent] = ""
-     node[:tag] = "html"
-     @elements << node
+     if reader.css('html').any?
+       node = Hash.new
+       node[:parent] = ""
+       node[:tag] = "html"
+       node[:pointer] = reader.css('html').first.pointer_id
+       @elements << node
+     end
 
      #search elements from body section
-       if !reader.at('body').nil?
+       if reader.at('body')
          node = Hash.new
          node[:parent] = "html"
          node[:tag] = "body"
+         node[:pointer] = reader.css('body').first.pointer_id
+         node[:parent_pointer] = reader.css('html').first.pointer_id
          @elements << node
 
          reader.at('body').attribute_nodes.each do |element_attribute|
            node = Hash.new
            node[:parent] = "html"
            node[:tag] = "body"
-           node[:attribute] = element_attribute.name if !element_attribute.name.nil?
-           node[:value] = element_attribute.value if !element_attribute.value.nil?
+           node[:attribute] = element_attribute.name if element_attribute.name
+           node[:value] = element_attribute.value if element_attribute.value
            node[:pointer] = element_attribute.pointer_id
+           node[:parent_pointer] = reader.css('html').first.pointer_id
            @elements << node
          end
       end
       #end search
 
       #search elements from head section
-     if !reader.at('head').nil?
+     if reader.at('head')
        node = Hash.new
        node[:parent] = "html"
        node[:tag] = "head"
+       node[:pointer] = reader.css('head').first.pointer_id
+       node[:parent_pointer] = reader.css('html').first.pointer_id
        @elements << node
+
        reader.at('head').children.each do |child|
          if child.attribute_nodes.empty?
            node = Hash.new
            node[:parent] = "head"
            node[:tag] = child.name
-           node[:content] = child.text if !child.text.nil? or child.comment?
+           node[:content] = child.text if child.text or child.comment?
            node[:pointer] = child.pointer_id
            node[:parent_pointer] = child.parent.pointer_id
-
            @elements << node
          else
            child.attribute_nodes.each do |element_attribute|
@@ -105,10 +89,9 @@ class CodeTerminator::Html
              else
                node[:tag] = child.name
              end
-             # node[:tag] = ( ? "text", child.name)
-             node[:content] = child.text if !child.text.nil?
-             node[:attribute] = element_attribute.name if !element_attribute.name.nil?
-             node[:value] = element_attribute.value if !element_attribute.value.nil?
+             node[:content] = child.text if child.text
+             node[:attribute] = element_attribute.name if element_attribute.name
+             node[:value] = element_attribute.value if element_attribute.value
              node[:pointer] = element_attribute.pointer_id
              node[:parent_pointer] = child.pointer_id
              @elements << node
@@ -120,7 +103,7 @@ class CodeTerminator::Html
     #end search elements
 
     #search elements inside body (children)
-    if !reader.at('body').nil?
+    if reader.at('body')
       reader.at('body').children.each do |child|
         if child.attribute_nodes.empty?
           node = Hash.new
@@ -131,12 +114,19 @@ class CodeTerminator::Html
           node[:parent_pointer] = child.parent.pointer_id
           @elements << node
         else
+          node = Hash.new
+          node[:parent] = "body"
+          node[:tag] = child.name
+          node[:content] = child.text if child.text? or child.comment?
+          node[:pointer] = child.pointer_id
+          node[:parent_pointer] = child.parent.pointer_id
+          @elements << node
           child.attribute_nodes.each do |element_attribute|
             node = Hash.new
             node[:parent] = "body"
             node[:tag] = child.name
-            node[:attribute] = element_attribute.name if !element_attribute.name.nil?
-            node[:value] = element_attribute.value if !element_attribute.value.nil?
+            node[:attribute] = element_attribute.name if element_attribute.name
+            node[:value] = element_attribute.value if element_attribute.value
             node[:pointer] = element_attribute.pointer_id
             node[:parent_pointer] = child.pointer_id
             @elements << node
@@ -146,128 +136,7 @@ class CodeTerminator::Html
       end
      end
      #end search elements
-
      @elements
-   end
-
-     # Validate if the syntax is correct. Return an array with Nokogiri errors.
-     #
-     # Example:
-     #   >> CodeTerminator::Html.validate_syntax("<h1>Hola Mundo!</h1")
-     #   => [#<Nokogiri::XML::SyntaxError: expected '>'>]
-     #
-     # Arguments:
-     #   code: (String)
-
-   def validate_syntax(code)
-     errors = Array.new
-
-     begin
-       Nokogiri::XML(code) { |config| config.strict }
-
-       #validate if html follow w3, uncomment when check all the page
-         #"<!DOCTYPE html>
-         # <html>
-         #   <head>
-         #     <h1>asdasd</h1>
-         #     <title>asdasd</title>
-         #   </head>
-         #   <body>
-         #     <h1>hola</h1>
-         #   </body>
-         # </html>"
-       # @validator = Html5Validator::Validator.new
-       # @validator.validate_text(@html)
-
-     rescue Nokogiri::XML::SyntaxError => e
-       #errors[0] = "Check if you close your tags"
-       errors[0] = e
-     end
-
-     errors
-   end
-
-     # Read a html file. Return the text of the file.
-     #
-     # Example:
-     #   >> CodeTerminator::Html.read_file("hola_mundo.html")
-     #   => "<h1>Hola Mundo!</h1>\n"
-     #
-     # Arguments:
-     #   source: (String)
-
-   def read_file(source)
-     if @source_type == "url"
-       fileHtml = open(source).read
-     else
-       fileHtml = File.open(source, "r")
-     end
-
-     text = ""
-     begin
-       fileHtml.each_line do |line|
-         text << line
-       end
-       fileHtml.close
-     rescue
-       text = false
-     ensure
-       #fileHtml.close unless fileHtml.nil?
-     end
-
-     text
-   end
-
-     # Get the elements of the code in html format. Return a string with elements in html.
-     #
-     # Example:
-     #   >> CodeTerminator::Html.print_elements("exercises/hola_mundo.html" )
-     #   => "name = h1<br><hr>name = text<br>content = hola mundo<br><hr>"
-     #
-     # Arguments:
-     #   elements: (Array)
-
-   def print_elements(elements)
-     text = ""
-     elements.each do |child|
-       text << "parent = " + child[:parent] + "<br>" if !child[:parent].nil?
-       text << "tag = " + child[:tag] + "<br>" if !child[:tag].nil?
-       text << "attribute = " + child[:attribute] + "<br>" if !child[:attribute].nil?
-       text << "value = " + child[:value] + "<br>" if !child[:value].nil?
-       text << "content = " + child[:content] + "<br>" if !child[:content].nil?
-       text << "<hr>"
-     end
-     text
-   end
-
-   # Get the instructions to recreate the html code. Return an array with strings .
-   #
-   # Example:
-   #   >> CodeTerminator::Html.get_instructions(file.get_elements("exercises/test.html"))
-   #   => ["Add the tag h2 in body", "Add the tag text in h2 with content 'hola test' ", "Add the tag p in body"]
-   #
-   # Arguments:
-   #   instructions: (Array)
-
-   def get_instructions(source)
-     elements = get_elements(source)
-     text = ""
-     instructions = Array.new
-     elements.each do |child|
-       if child[:tag]!="text"
-         text << "Add the tag " + child[:tag]
-         text << " in "  + child[:parent]  if !child[:parent].nil?
-         text << " with an attribute '" + child[:attribute] + "' " if !child[:attribute].nil?
-         text << " with value '" + child[:value] + "' " if !child[:value].nil?
-       elsif child[:tag] == "comment"
-        text << " In " + child[:tag]+ " add the text '" + child[:content]  + "' "  if !child[:content].nil?
-       else
-         text << " In " + child[:parent]+ " add the text '" + child[:content]  + "' "  if !child[:content].nil?
-       end
-       instructions.push(text)
-       text = ""
-     end
-     instructions
    end
 
 
@@ -287,205 +156,183 @@ class CodeTerminator::Html
    #   code: (String)
 
    def match(source, code)
-     html_errors = Array.new
-
+     @html_errors = Array.new
      code = Nokogiri::HTML(code)
+     @elements = get_elements(source)
 
-     elements = get_elements(source)
+     @elements.each do |e|
+       p css_string = build_css(e,'').strip
 
-     css_code_checked = Array.new
+       #search_attribute()
+       if e[:attribute]
+        #  search_attribute = code.css(css_string).first
+        #  if !search_attribute
+        #    @html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]} with the value #{e[:value]}")
+        #  end
 
-     exist_in_body = Array.new
-
-     error333 = nil
-
-     elements.each do |e|
-
-       item = e[:tag]
-
-       if item == "text" or item == "comment"
-
-        #  Check the text
-         if !e[:content].nil?
-           if code.css(e[:parent]).count < 2
-             if code.css(e[:parent]).class == Nokogiri::XML::NodeSet
-               text_found = false
-               @comment_found = false if item == "comment"
-               error330 = nil
-               if code.css(e[:parent]).children.any?
-
-                 code.css(e[:parent]).children.each do |node_child|
-
-                   if node_child.class == Nokogiri::XML::Comment
-                     if e[:content].strip != ""
-                       if node_child.text.strip! != e[:content].strip!
-                         error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
-                       end
-                     end
-                     @comment_found = true
-                   end
-
-                   if node_child.class == Nokogiri::XML::Text && item != "comment"
-                     if node_child.text.strip != e[:content].strip
-                       error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
-                     else
-                       text_found = true
-                     end
-                   end
-
-                 end
-                 #end each
-                else
-
-                    if code.css(e[:parent]).text.strip != e[:content].strip
-                      #validate if comment exist and has the expected content
-                      if item == "comment"
-                        error330 = new_error(element: e, type: 330, description: "The text inside the comment should be #{e[:content]}")
-                        @comment_found = true
-                      else
-                        error330 = new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
-                      end
-                    else
-                      text_found = true
-                    end
-
-                end
-                #end if parent has children
-
-                #if comment not found, throw error
-                if !(defined? @comment_found).nil?
-                  html_errors << new_error(element: e, type: 404, description:  "Remember to add the comment tag") if !@comment_found
-                  remove_instance_variable(:@comment_found)
-                end
-
-               if !text_found && !error330.nil?
-                 html_errors << error330
-                 error330 = nil
-               end
-             end
-             #end if parent is nodeset
-           else
-             exist = false
-             code.css(e[:parent]).each do |code_css|
-               if code_css.text == e[:content]
-                 exist = true
-               end
-             end
-             if !exist
-              html_errors << new_error(element: e, type: 330, description: "The text inside `<#{e[:parent]}>` should be #{e[:content]}")
-             end
+       #search_text()
+      elsif e[:tag] == "text" || e[:tag] == "comment"
+         element_name = e[:tag]=="comment" ? "comment":e[:parent]
+         search_elements = code.css(css_string)
+         if e[:content].strip != ""
+           element = search_elements.select{|hash| hash.text.strip == e[:content].strip}
+           if element.empty?
+             @html_errors << new_error(element: e, type: 330, description: "The text inside `<#{element_name}>` should be #{e[:content]}")
            end
-           #end if parent < 2
          end
-         #end if content is null
-
+      #search_element()
        else
-       #item class is different to text or comment
-       if code.css(e[:tag]).length > 0
 
-
-        code.css(e[:tag]).each do |tag|
-
-          p "code css + " + e[:tag].to_s
-          p "pointer element " + e[:pointer].to_s
-
-          p e_check = css_code_checked.select {|element| element[:target_pointer].to_s == e[:pointer].to_s }
-          p e_check2 = css_code_checked.select {|element| element[:pointer].to_s == tag.pointer_id.to_s }
-          p e_check3 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
-          if e_check.count < 1 and e_check2.count < 1 and e_check3.count < 1
-
-          element_checked = Hash.new
-          element_checked[:pointer] = tag.pointer_id
-          element_checked[:tag] = e[:tag]
-          element_checked[:target_pointer] = e[:pointer]
-          element_checked[:target_parent_pointer] = e[:parent_pointer]
-
-
-         if !e[:attribute].nil?
-          #  Check the tag's attributes
-           if tag.attribute(e[:attribute]).nil?
-             html_errors << new_error(element: e, type: 334, description: "`<#{e[:tag]}>` should have an attribute named #{e[:attribute]}")
-           else
-             if tag.attribute(e[:attribute]).value != e[:value]
-                 exist_in_body << false
-                #  p "type " + e[:tag] + " with attribute " + e[:attribute] + " value " + e[:value]
-                # Check if the img have attribute src and value is null, the user can write whatever image he wants
-                 if !(e[:tag] == "img" && e[:attribute] == "src" && e[:value] == "")
-                   error333 = new_error(element: e, type: 333, description: "Make sure that the attribute #{e[:attribute]} in `<#{e[:tag]}>` has the value #{e[:value]}")
-                 end
-             else
-               p "add code_checked"
-               css_code_checked << element_checked
-               exist_in_body << true
-             end
-
-           end
-
-          end #if element checked
-         end
-
-        #  Check that tags exist within parent tags
-        if tag.first.respond_to? :parent
-          p  "check if exists in parent tags"
-          p e_check4 = css_code_checked.select {|element| element[:pointer].to_s == e[:pointer].to_s }
-          p e_check5 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
-
-         if (tag.count < 2 && !tag.first.nil?) or (e_check4.count < 1 && e_check5.count < 1)
-           if tag.first.parent.name != e[:parent]
-             html_errors << new_error(element: e, type: 440, description: "Remember to add the `<#{e[:tag]}>` tag inside `<#{e[:parent]}>`")
-           end
-         else
-          exist_in_parent = false
-           tag.each do |code_css|
-              if code_css.parent.name == e[:parent]
-                exist_in_parent = true
-              end
-            end
-            if !exist_in_parent
-              html_errors << new_error(element: e, type: 440, description: "Remember to add the `<#{e[:tag]}>` tag inside `<#{e[:parent]}>`")
-            end
-         end
-        end
-        end
-
-       else
-         #  Check that the tag is present
-         p "check if exists in parent"
-         e_check4 = css_code_checked.select {|element| element[:pointer].to_s == e[:pointer].to_s }
-         e_check5 = css_code_checked.select {|element| element[:target_parent_pointer].to_s == e[:parent_pointer].to_s }
-          if code.at_css(e[:tag]).nil? or e_check4.count < 1 and e_check5.count < 1
-            html_errors << new_error(element: e, type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag")
+         search_element = code.css(css_string).first
+         if !search_element
+            @html_errors << new_error(element: e[:tag], type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag in " + css_string.chomp(e[:tag]))
+        #  else
+        #    if !are_all_elements(code,e[:tag], css_string)
+        #     #  @html_errors << new_error(element: e[:tag], type: 404, description:  "Remember to add the `<#{e[:tag]}>` tag.")
+        #    end
           end
-       end
 
-       if !exist_in_body.empty? && !exist_in_body.include?(true) && !error333.nil?
-         html_errors << error333
        end
-       exist_in_body = []
-
-      end
 
      end
-     p css_code_checked
 
-     html_errors
+     count_elements(code)
+     search_attribute_value(code)
+
+     p @html_errors
    end
+
+
 
    private
 
+   def build_css(element, css)
+     if !element[:parent].empty?
+       if !element[:attribute]
+          if element[:tag]=="comment"
+           css += "//comment()"
+          else
+            parent = @elements.select{|hash| hash[:pointer].to_s == element[:parent_pointer].to_s}.first
+            parent_css = parent[:tag].to_s if parent
+            css += parent_css
+
+             parent_attributes = @elements.select{|hash| hash[:parent_pointer].to_s == element[:parent_pointer].to_s && hash[:attribute]}
+             parent_attributes.each do |par_attr|
+               css += css_attribute_type(par_attr)
+            end
+            css += " "
+            css += element[:tag].to_s + " " if element[:tag] != "text"
+          end
+
+        else
+
+           search_attribute = @elements.select{|hash| hash[:parent_pointer].to_s == element[:parent_pointer].to_s && hash[:attribute].to_s == element[:attribute]}.first
+           css += search_attribute[:tag].to_s
+           attribute_css = css_attribute_type(search_attribute) if search_attribute
+           css += attribute_css
+
+        end
+      else
+        css += element[:tag].to_s + " " if element[:tag] != "text"
+      end
+       css
+   end
+
+   def css_attribute_type(element)
+     case element[:attribute]
+     when "id"
+       css_symbol = '#'
+       css = css_symbol.to_s + element[:value].to_s
+     when "class"
+       css_symbol = '.'
+       css = css_symbol.to_s + element[:value].to_s
+     when "src"
+       css_symbol = "[src]"
+       css = css_symbol.to_s
+     when "href"
+       css_symbol = "[href]"
+       css = css_symbol.to_s
+     when "alt"
+       css_symbol = "[alt]"
+       css = css_symbol.to_s
+     else
+       css_symbol = element[:attribute]
+       css = css_symbol.to_s
+     end
+     css
+   end
+
+   def are_all_elements(code, tag, css_string)
+     element_count = @elements.select{|hash| hash[:tag] == tag && !hash[:attribute]}.count
+      code_count = code.css(css_string).count
+      element_count > code_count ? false:true
+   end
+
+   def count_elements(code)
+     uniq_elements =  @elements.group_by{|h| h[:tag]}
+     uniq_elements.each do |e|
+       if e[0] != "text"
+        #  "element " + e[0].to_s
+         element_count = e[1].select{|hash| !hash[:attribute]}.count
+         if e[0] != "comment"
+           code_count = code.css(e[0]).count
+         else
+           code_count = code.css("//comment()").count
+         end
+
+         if element_count > code_count
+            @html_errors << new_error(element: e[0], type: 404, description:  "Remember to add the `<#{e[0]}>` tag.")
+         end
+      end
+     end
+   end
+
+  #  def search_comments(code)
+  #    comment_elements = code.css('//comment()')
+   #
+  #  end
+
+   def search_attribute_value(code)
+     uniq_elements =  @elements.group_by{|h| h[:tag]}
+     uniq_elements.each do |e|
+
+      element_with_attributes = e[1].select{|hash| hash[:attribute]}
+      element_with_attributes.each do |ewa|
+
+          css_string = build_css(ewa, '')
+
+          if code.css(css_string).empty?
+            @html_errors << new_error(element: ewa, type: 334, description: "`<#{ewa[:tag]}>` should have an attribute named #{ewa[:attribute]}")
+          else
+
+            if ewa[:value] != "" && code.css(css_string).select{|x| x[ewa[:attribute]].to_s == ewa[:value].to_s}.empty?
+              @html_errors << new_error(element: ewa, type: 333, description: "Make sure that the attribute #{ewa[:attribute]} in `<#{ewa[:tag]}>` has the value #{ewa[:value]}")
+            end
+
+            if code.css(css_string).select{|x| x[ewa[:attribute]].to_s == ""}.any?
+              @html_errors << new_error(element: ewa, type: 335, description: "`<#{ewa[:attribute]}>` in `<#{ewa[:tag]}>` can't be empty")
+            end
+
+          end
+
+      end
+
+    end
+
+
+   end
+
    def add_children(parent)
      parent.children.each do |child|
-
        if child.attribute_nodes.empty?
           node = Hash.new
           node[:parent] = parent.name
-          # node[:tag] = child.name
           if child.name == "#cdata-section"
             node[:tag] = "text"
           else
             node[:tag] = child.name
           end
-          node[:content] = child.text if !child.text.nil? and child.class!=Nokogiri::XML::Element
+          node[:content] = child.text.strip if child.text and child.class != Nokogiri::XML::Element
           node[:pointer] = child.pointer_id
           node[:parent_pointer] = child.parent.pointer_id
           @elements << node
@@ -493,16 +340,13 @@ class CodeTerminator::Html
          child.attribute_nodes.each do |element_attribute|
            node = Hash.new
            node[:parent] = parent.name
-          #  node[:tag] = child.namecode
            if element_attribute.name == "#cdata-section"
              node[:tag] = "text"
-           elsif element_attribute.name == "href"
-             node[:tag] = child.name
            else
-             node[:tag] = element_attribute.name
+             node[:tag] = child.name
            end
-           node[:attribute] = element_attribute.name if !element_attribute.name.nil?
-           node[:value] = element_attribute.value if !element_attribute.value.nil?
+           node[:attribute] = element_attribute.name if element_attribute.name
+           node[:value] = element_attribute.value if element_attribute.value
            node[:pointer] = element_attribute.pointer_id
            node[:parent_pointer] = child.pointer_id
            @elements << node
@@ -514,17 +358,17 @@ class CodeTerminator::Html
    end
 
    def remove_empty_text (reader)
-     if !reader.at('head').nil?
+     if reader.at('head')
      reader.at('head').children.each do |child|
-       if !child.text.nil?
+       if child.text
          child.remove if child.content.to_s.squish.empty? && child.class == Nokogiri::XML::Text
        end
         check_children(child) if child.children.any?
      end
     end
-      if !reader.at('body').nil?
+      if reader.at('body')
      reader.at('body').children.each do |child|
-       if !child.text.nil?
+       if child.text
          child.remove if child.content.to_s.squish.empty? && child.class == Nokogiri::XML::Text
        end
         check_children(child) if child.children.any?
@@ -535,8 +379,8 @@ class CodeTerminator::Html
 
    def check_children(parent)
      parent.children.each do |child|
-       if !child.text.nil?
-         child.remove if child.content.to_s.squish.empty?
+       if child.text
+         child.remove if child.content.to_s.squish.empty? && child.class == Nokogiri::XML::Text
        end
        check_children(child) if child.children.any?
      end
@@ -553,6 +397,5 @@ class CodeTerminator::Html
      node
    end
 
-  #end
 
 end
