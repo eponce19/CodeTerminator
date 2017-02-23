@@ -249,6 +249,12 @@ class CodeTerminator::Html
      when "src"
        css_symbol = "[src]"
        css = css_symbol.to_s
+     when "href"
+       css_symbol = "[href]"
+       css = css_symbol.to_s
+     when "alt"
+       css_symbol = "[alt]"
+       css = css_symbol.to_s
      else
        css_symbol = element[:attribute]
        css = css_symbol.to_s
