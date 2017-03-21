@@ -208,16 +208,36 @@ class CodeTerminator::Css
      parser.load_string!(code)
      elements.each do |e|
        item = e[:selector]
-       if !e[:property].nil?
+       if e[:property]
          property = e[:property]
          parser_array = parser.find_by_selector(item)
          if parser_array.any?
+          #  p "array " + parser_array.to_s
            parser_property = parser_array[0].split(";")
-           parser_property.each {|a| a.strip! if a.respond_to? :strip! }
+          #  p "array  split" + parser_property.to_s
 
+           search_results = parser_property.select { |key| key.include?(property) }
+           if search_results.empty?
+             css_errors << new_error(element: e, type: 111, description: "Make sure the property _#{property}_ is in the selector **#{item}**")
+           end
+
+
+          #  parser_property.each do |pp|
+          #     p "include " + pp.include?(property).to_s
+          #     if !pp.include?(property)
+          #       css_errors << new_error(element: e, type: 111, description: "Make sure the property _#{property}_ is in the selector **#{item}**")
+          #     end
+          #  end
+
+
+          parser_property.each {|a| a.strip! if a.respond_to? :strip! }
+
+
+          #  p "value:" + e[:value]
            if e[:value]==""
              property = e[:property] + ": "
-             if parser_property.empty? { |s| s.include?(property) }
+            #  p "parser property: " + parser_property.to_s
+             if parser_property.empty?
                css_errors << new_error(element: e, type: 111, description: "Make sure the property _#{property}_ is in the selector **#{item}**")
              end
            else
